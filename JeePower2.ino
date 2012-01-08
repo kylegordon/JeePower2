@@ -26,14 +26,10 @@
 
 #include <JeeLib.h>
 
-RF12 RF12;
-
 Port optoIn (1);     // Port 1 : Optoisolator inputs
 PortI2C myI2C (2);      // Port 2 : I2C driven LCD display for debugging
 // Port 3 : Buzzer on DIO and LED on AIO
 Port relays (4);     // Port 4 : Output relays
-
-LiquidCrystalI2C lcd (myI2C);
 
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
