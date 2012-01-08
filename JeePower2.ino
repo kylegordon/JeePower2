@@ -24,10 +24,7 @@
  */
 
 
-#include <Ports.h>
-#include <PortsLCD.h>
-#include <RF12.h>
-#include <RF12sio.h>
+#include <JeeLib.h>
 
 RF12 RF12;
 
