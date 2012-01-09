@@ -58,7 +58,8 @@ long elapsedMillis = 0;         // elapsed time
 long storedMillis = 0;
 
 long flashtarget = 0;           // Used for flashing the LED to indicate what is happening
-byte buzzTone = 196;            // Buzzer tone
+byte BuzzLowTone = 196;            // Buzzer low tone
+byte BuzzHighTone = 240;	// Buzzer high tone
 
 boolean MainPowerState = 0;	  // Main ATX Relay state
 boolean GPIOState = 0;			  // GPIO Relay state
@@ -103,7 +104,7 @@ void setup() {
 
 	 for (byte i = 0; i <= 10; ++i) {
 		  digitalWrite(stateLED, flasher);
-		  if (flasher) {tone(buzzPin,buzzTone,1000); }
+		  if (flasher) {tone(buzzPin,BuzzLowTone,1000); }
 		  delay(250);
 		  if (flasher) {noTone(buzzPin); }
 		  flasher = !flasher;
@@ -157,8 +158,19 @@ void loop(){
 		  int IgnitionOnElapsedMillis = currentMillis - IgnitionOnMillis;
 		  int OilPressureOffElapsedMillis = currentMillis - OilPressureOffMillis;
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
-				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
-				// Maybe a low, high tone?
+			  // Only whilst counting upwards, buzz periodically to indicate that we're in this state.
+			  // Maybe a low, high tone?
+			  for (byte i = 0; i <= 10; ++i) {
+				  digitalWrite(stateLED, flasher);
+				  if (flasher) {
+					  tone(buzzPin,BuzzLowTone,250);
+					  tone(buzzPin,BuzzHighTone,500);
+					  noTone(buzzPin); 
+				  }
+				  flasher = !flasher;
+				  delay(250);
+			  }
+
 		  }
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
 				// Turn on the Main output and the GPIO relay
@@ -199,6 +211,17 @@ void loop(){
 		  delay(1000);
 		  // Have a periodic buzzer tone to indicate this state
 		  // maybe a high, low tone?
+		  for (byte i = 0; i <= 10; ++i) {
+			  digitalWrite(stateLED, flasher);
+			  if (flasher) {
+				  tone(buzzPin,BuzzHighTone,250);
+				  tone(buzzPin,BuzzLowTone,500);
+				  noTone(buzzPin);       
+			  }
+			  flasher = !flasher;
+			  delay(250);
+		  }
+
 	 }
 
 	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
