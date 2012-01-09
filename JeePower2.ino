@@ -153,11 +153,13 @@ void loop(){
 		  int OilPressureOffElapsedMillis = currentMillis - OilPressureOffMillis;
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
 				// Turn on the Main output and the GPIO relay
+				// This should be the main function when in a running state
 				if (DEBUG) { Serial.print("Turning on"); }
 				relays.digiWrite(HIGH); // Turn on the ATX power
 				MainPowerState = 1;
 				relays.digiWrite2(HIGH); // Turn on the GPIO indicator output
 				GPIOState = 1;
+				GPIOOffTime = 0; // Could this be combined with GPIOState?
 		  }
 	 }
 
@@ -181,14 +183,22 @@ void loop(){
 					 }
 	 }
 
-	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
-		  // This is now the timeout period. We've turned off the GPIO indicate, so we have to wait for the board to shut down.
-		  if (DEBUG) { Serial.println("Beyond the point of no return"); }
-		  delay(10000);
+	 if ((currentMillis - GPIOOffTime) < GPIOOffTimeout) {
+		  // We're waiting for the main timeout to expire now
+		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
+		  delay(1000);
+	 }
 
+	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
+		  // The GPIO timeout has expired. Turn off the main output
+                  if (DEBUG) { Serial.println("Turning off"); }
+		  delay(10000);
+		  relays.digiWrite(LOW); // Turn off the ATX power
+		  MainPowerState = 0;
 	 }
 
 	 if (DEBUG) { 
+		Serial.println("---");
 	 	Serial.print("IgnitionOnTimeout     : "); Serial.println(IgnitionOnTimeout);
 	 	Serial.print("IgnitionOffTimeout    : "); Serial.println(IgnitionOffTimeout); 
 		Serial.print("OilPressureOffTimeout : "); Serial.println(OilPressureOffTimeout);
