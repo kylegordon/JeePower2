@@ -67,8 +67,8 @@ boolean GPIOState = 0;			  // GPIO Relay state
 boolean active = 0;
 boolean timestored = 0;
 boolean flasher = 0;            // LED state level
-//boolean ignitionState = 0;      // variable for reading the pushbutton status
-//boolean oilState = 0;           // variable for oil pressure state
+//boolean IgnitionState = 0;      // variable for reading the pushbutton status
+//boolean OilState = 0;           // variable for oil pressure state
 
 
 void setup() {
@@ -126,17 +126,17 @@ void loop(){
 
 	 // Sleepy::loseSomeTime() screws up serial output
 	 //if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
-	 unsigned long currentMillis = millis();
+	 unsigned long CurrentMillis = millis();
 
 	 if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
 		  if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
 	 }
 
 	 // read the state of the ignition and oil pressure to tell if engine is running
-	 boolean ignitionState = !optoIn.digiRead2();
-	 boolean oilState = !optoIn.digiRead();
+	 boolean IgnitionState = !optoIn.digiRead2();
+	 boolean OilState = !optoIn.digiRead();
 
-	 if (oilState  == 1) {
+	 if (OilState  == 1) {
 		// The oil light is on. We're not ready to start up yet
 		if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
 		delay(1000);
@@ -145,9 +145,9 @@ void loop(){
 
 	 if (IgnitionOnMillis == 0) {
 		  // Ignition has just been turned on, and time has to be stored and made ready for counting up.
-		  if (ignitionState == 1 && oilState == 0) {
+		  if (IgnitionState == 1 && OilState == 0) {
 				// All is compliant. Store the time this happened at
-				IgnitionOnMillis = currentMillis;
+				IgnitionOnMillis = CurrentMillis;
 				if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
 		  }
 	 }
@@ -155,8 +155,10 @@ void loop(){
 	 if (IgnitionOnMillis != 0 && OilPressureOffMillis != 0) {
 		  // Ignition is on
 		  IgnitionOffMillis = 0 ;
-		  int IgnitionOnElapsedMillis = currentMillis - IgnitionOnMillis;
-		  int OilPressureOffElapsedMillis = currentMillis - OilPressureOffMillis;
+		  int IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
+		  int OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
+		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
+		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 			  // Only whilst counting upwards, buzz periodically to indicate that we're in this state.
 			  // Maybe a low, high tone?
@@ -164,7 +166,9 @@ void loop(){
 				  digitalWrite(stateLED, flasher);
 				  if (flasher) {
 					  tone(buzzPin,BuzzLowTone,250);
-					  tone(buzzPin,BuzzHighTone,500);
+					  delay(250);
+					  tone(buzzPin,BuzzHighTone,250);
+					  delay(250);
 					  noTone(buzzPin); 
 				  }
 				  flasher = !flasher;
@@ -184,28 +188,29 @@ void loop(){
 		  }
 	 }
 
-	 if (ignitionState == 0 && oilState == 0) {
+	 if (IgnitionState == 0 && OilState == 0) {
 		  // Looks like we're turned off
 		  // Wrap this into one if statement?
 		  if (IgnitionOffMillis == 0) {
-				IgnitionOffMillis = currentMillis;
+				IgnitionOffMillis = CurrentMillis;
 				IgnitionOnMillis = 0;
 		  }
 
 	 }
 	 if (IgnitionOffMillis != 0) {
-		  int IgnitionOffElapsedMillis = currentMillis - IgnitionOffMillis;
+		  int IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
 			  // Looks like the ignition is off and staying off
 			  relays.digiWrite2(LOW); // Turn off the GPIO indicator output
 			  GPIOState = 0;
 			  if (GPIOOffTime == 0) {
-				  GPIOOffTime = currentMillis;
+				  GPIOOffTime = CurrentMillis;
 			  }
 		 }
 	 }
-
-	 if ((currentMillis - GPIOOffTime) < GPIOOffTimeout) {
+	 
+	 // If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
+	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1)) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
 		  delay(1000);
@@ -215,7 +220,9 @@ void loop(){
 			  digitalWrite(stateLED, flasher);
 			  if (flasher) {
 				  tone(buzzPin,BuzzHighTone,250);
-				  tone(buzzPin,BuzzLowTone,500);
+				  delay(250);
+				  tone(buzzPin,BuzzLowTone,250);
+				  delay(250);
 				  noTone(buzzPin);       
 			  }
 			  flasher = !flasher;
@@ -224,25 +231,31 @@ void loop(){
 
 	 }
 
-	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
+	 if ((CurrentMillis - GPIOOffTime) > GPIOOffTimeout) {
 		  // The GPIO timeout has expired. Turn off the main output
-                  if (DEBUG) { Serial.println("Turning off"); }
+		  if (DEBUG) { Serial.println("Everything is off"); }
 		  // Indicate via a signature buzz tone
-		  delay(10000);
 		  relays.digiWrite(LOW); // Turn off the ATX power
 		  MainPowerState = 0;
 	 }
 
 	 if (DEBUG) { 
 		Serial.println("---");
-	 	Serial.print("IgnitionOnTimeout     : "); Serial.println(IgnitionOnTimeout);
-	 	Serial.print("IgnitionOffTimeout    : "); Serial.println(IgnitionOffTimeout); 
-		Serial.print("OilPressureOffTimeout : "); Serial.println(OilPressureOffTimeout);
-	 	Serial.print("IgnitionOnMillis	    : "); Serial.println(IgnitionOnMillis);
-	 	Serial.print("IgnitionOffMillis	    : "); Serial.println(IgnitionOffMillis);
-		Serial.print("OilPressureOffMillis  : "); Serial.println(OilPressureOffMillis);
-	 	Serial.print("GPIOOffTimeout        : "); Serial.println(GPIOOffTimeout);
-		Serial.print("GPIOOffTime	    : "); Serial.println(GPIOOffTime);
+		Serial.print("CurrentMillis               : "); Serial.println(CurrentMillis);
+	 	Serial.print("IgnitionOnTimeout           : "); Serial.println(IgnitionOnTimeout);
+	 	Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout); 
+		Serial.print("OilPressureOffTimeout       : "); Serial.println(OilPressureOffTimeout);
+	 	Serial.print("IgnitionOnMillis            : "); Serial.println(IgnitionOnMillis);
+	 	Serial.print("IgnitionOffMillis           : "); Serial.println(IgnitionOffMillis);
+		Serial.print("OilPressureOffMillis        : "); Serial.println(OilPressureOffMillis);
+	 	Serial.print("GPIOOffTimeout              : "); Serial.println(GPIOOffTimeout);
+		Serial.print("GPIOOffTime                 : "); Serial.println(GPIOOffTime);
+		Serial.println("---");
+		Serial.print("IgnitionState               : "); Serial.println(IgnitionState);
+		Serial.print("OilState                    : "); Serial.println(OilState);
+		Serial.print("MainPowerState              : "); Serial.println(MainPowerState);
+      Serial.println("---");
+		delay(1000);
 	}
 
 
@@ -252,7 +265,7 @@ void loop(){
 				
 	 /*
 
-	 elapsedMillis = currentMillis - storedMillis;
+	 elapsedMillis = CurrentMillis - storedMillis;
 	 if (elapsedMillis > mainontimeout) { active = 1; }
 
 
