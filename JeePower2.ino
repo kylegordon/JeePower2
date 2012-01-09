@@ -120,8 +120,6 @@ void setup() {
 // Take the time for every variable at the start
 // Compare each variable on every loop
 // If a variable reaches its limit, do something
-// Have a variable used to indicate whether time should be stored?
-
 
 void loop(){
 
@@ -137,6 +135,13 @@ void loop(){
 	 boolean ignitionState = !optoIn.digiRead2();
 	 boolean oilState = !optoIn.digiRead();
 
+	 if (oilState  == 1) {
+		// The oil light is on. We're not ready to start up yet
+		if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
+		delay(1000);
+		OilPressureOffMillis = 0;
+	 }
+
 	 if (IgnitionOnMillis == 0) {
 		  // Ignition has just been turned on, and time has to be stored and made ready for counting up.
 		  if (ignitionState == 1 && oilState == 0) {
@@ -151,10 +156,14 @@ void loop(){
 		  IgnitionOffMillis = 0 ;
 		  int IgnitionOnElapsedMillis = currentMillis - IgnitionOnMillis;
 		  int OilPressureOffElapsedMillis = currentMillis - OilPressureOffMillis;
+		  if ((ignitionOnElapsedMills < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
+				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
+				// Maybe a low, high tone?
+		  }
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
 				// Turn on the Main output and the GPIO relay
 				// This should be the main function when in a running state
-				if (DEBUG) { Serial.print("Turning on"); }
+				if (DEBUG) { Serial.print("Turning on everything"); }
 				relays.digiWrite(HIGH); // Turn on the ATX power
 				MainPowerState = 1;
 				relays.digiWrite2(HIGH); // Turn on the GPIO indicator output
@@ -168,30 +177,34 @@ void loop(){
 		  // Wrap this into one if statement?
 		  if (IgnitionOffMillis == 0) {
 				IgnitionOffMillis = currentMillis;
+				IgnitionOnMillis = 0;
 		  }
 
 	 }
 	 if (IgnitionOffMillis != 0) {
 		  int IgnitionOffElapsedMillis = currentMillis - IgnitionOffMillis;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
-					 // Looks like the ignition is off and staying off
-					 relays.digiWrite2(LOW); // Turn off the GPIO indicator output
-					 GPIOState = 0;
-					 if (GPIOOffTime == 0) {
-						  GPIOOffTime = currentMillis;
-					 }
-					 }
+			  // Looks like the ignition is off and staying off
+			  relays.digiWrite2(LOW); // Turn off the GPIO indicator output
+			  GPIOState = 0;
+			  if (GPIOOffTime == 0) {
+				  GPIOOffTime = currentMillis;
+			  }
+		 }
 	 }
 
 	 if ((currentMillis - GPIOOffTime) < GPIOOffTimeout) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
 		  delay(1000);
+		  // Have a periodic buzzer tone to indicate this state
+		  // maybe a high, low tone?
 	 }
 
 	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
 		  // The GPIO timeout has expired. Turn off the main output
                   if (DEBUG) { Serial.println("Turning off"); }
+		  // Indicate via a signature buzz tone
 		  delay(10000);
 		  relays.digiWrite(LOW); // Turn off the ATX power
 		  MainPowerState = 0;
