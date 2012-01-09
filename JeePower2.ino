@@ -46,12 +46,12 @@ int OilPressureOffTimeout = 1000; // Timeout before confirming oil pressure warn
 int IgnitionOnMillis = 0;	// Time the ignition came on
 int IgnitionOffMillis = 0;	// Time the ignition went off
 int OilPressureOffMillis = 0;	// time the oil pressure warning went off
+int GPIOOffTimeout = 10000;     // Time to time to give the Bifferboard to shut down (10 minutes)
 
 int GPIOOffTime = 0;				  // Time the GPIO relay is disabled
 
 int mainontimeout = 30000;      // time to wait before turning on (30 seconds)
 int mainofftimeout = 90000;      // time to wait before turning off (15 minutes)
-int GPIOOffTimeout = 10000;     // time to give the Bifferboard to shut down (10 minutes)
 
 long previousMillis = 0;        // last update time
 long elapsedMillis = 0;         // elapsed time
@@ -130,7 +130,7 @@ void loop(){
 	 unsigned long currentMillis = millis();
 
 	 if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
-		  if (DEBUG == 1) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
+		  if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
 	 }
 
 	 // read the state of the ignition and oil pressure to tell if engine is running
@@ -183,7 +183,21 @@ void loop(){
 
 	 if ((currentMillis - GPIOOffTime) > GPIOOffTimeout) {
 		  // This is now the timeout period. We've turned off the GPIO indicate, so we have to wait for the board to shut down.
-	 }		  
+		  if (DEBUG) { Serial.println("Beyond the point of no return"); }
+		  delay(10000);
+
+	 }
+
+	 if (DEBUG) { 
+	 	Serial.print("IgnitionOnTimeout     : "); Serial.println(IgnitionOnTimeout);
+	 	Serial.print("IgnitionOffTimeout    : "); Serial.println(IgnitionOffTimeout); 
+		Serial.print("OilPressureOffTimeout : "); Serial.println(OilPressureOffTimeout);
+	 	Serial.print("IgnitionOnMillis	    : "); Serial.println(IgnitionOnMillis);
+	 	Serial.print("IgnitionOffMillis	    : "); Serial.println(IgnitionOffMillis);
+		Serial.print("OilPressureOffMillis  : "); Serial.println(OilPressureOffMillis);
+	 	Serial.print("GPIOOffTimeout        : "); Serial.println(GPIOOffTimeout);
+		Serial.print("GPIOOffTime	    : "); Serial.println(GPIOOffTime);
+	}
 
 
 	// ==================================
