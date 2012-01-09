@@ -156,7 +156,7 @@ void loop(){
 		  IgnitionOffMillis = 0 ;
 		  int IgnitionOnElapsedMillis = currentMillis - IgnitionOnMillis;
 		  int OilPressureOffElapsedMillis = currentMillis - OilPressureOffMillis;
-		  if ((ignitionOnElapsedMills < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
+		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
 				// Maybe a low, high tone?
 		  }
