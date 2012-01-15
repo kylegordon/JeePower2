@@ -137,10 +137,10 @@ void loop(){
 	 boolean OilState = !optoIn.digiRead();
 
 	 if (OilState  == 1 && OilPressureOffMillis != 0) {
-		// The oil light is on. We're not ready to start up yet
-		if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
-		delay(1000);
-		OilPressureOffMillis = 0;
+		  // The oil light is on. We're not ready to start up yet
+		  if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
+		  delay(1000);
+		  OilPressureOffMillis = 0;
 	 }
 	 if (OilState == 0 && OilPressureOffMillis == 0) {
 		  // The oil light is off. We're good to go
@@ -149,7 +149,7 @@ void loop(){
 		  OilPressureOffMillis = CurrentMillis;
 	 }
 
-	 if (IgnitionOnMillis == 0) {
+	 if (IgnitionState == 1 && IgnitionOnMillis == 0) {
 		  // Ignition has just been turned on, and time has to be stored and made ready for counting up.
 	//	  if (IgnitionState == 1 && OilState == 0) {
 				// All is compliant. Store the time this happened at
