@@ -191,7 +191,7 @@ void loop(){
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
 				// Turn on the Main output and the GPIO relay
 				// This should be the main function when in a running state
-				if (DEBUG) { Serial.print("Turning on everything"); }
+				if (DEBUG) { Serial.println("Main power and GPIO is on"); }
 				relays.digiWrite(HIGH); // Turn on the ATX power
 				MainPowerState = 1;
 				relays.digiWrite2(HIGH); // Turn on the GPIO indicator output
