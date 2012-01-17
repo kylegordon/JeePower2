@@ -212,7 +212,7 @@ void loop(){
 
 	 }
 	 if (IgnitionOffMillis != 0) {
-		  int IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
+		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
 		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
 			  // Looks like the ignition is off and staying off
