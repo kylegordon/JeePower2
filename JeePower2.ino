@@ -43,12 +43,12 @@ const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 int IgnitionOnTimeout =	30000;	  // Timeout before confirming ignition is on
 int IgnitionOffTimeout = 30000;  // Timeout before confirming ignition is off (and turning off the GPIO relay)
 int OilPressureOffTimeout = 1000; // Timeout before confirming oil pressure warning is off
-int IgnitionOnMillis = 0;	// Time the ignition came on
-int IgnitionOffMillis = 0;	// Time the ignition went off
-int OilPressureOffMillis = 0;	// time the oil pressure warning went off
+long IgnitionOnMillis = 0;	// Time the ignition came on
+long IgnitionOffMillis = 0;	// Time the ignition went off
+long OilPressureOffMillis = 0;	// time the oil pressure warning went off
 int GPIOOffTimeout = 10000;     // Time to time to give the Bifferboard to shut down (10 minutes)
 
-int GPIOOffTime = 0;				  // Time the GPIO relay is disabled
+long GPIOOffTime = 0;				  // Time the GPIO relay is disabled
 
 int mainontimeout = 30000;      // time to wait before turning on (30 seconds)
 int mainofftimeout = 90000;      // time to wait before turning off (15 minutes)
@@ -213,6 +213,7 @@ void loop(){
 	 }
 	 if (IgnitionOffMillis != 0) {
 		  int IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
+		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
 			  // Looks like the ignition is off and staying off
 			  relays.digiWrite2(LOW); // Turn off the GPIO indicator output
@@ -227,7 +228,7 @@ void loop(){
 	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1)) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
-		  delay(1000);
+		  // delay(1000);
 		  // Have a periodic buzzer tone to indicate this state
 		  // maybe a high, low tone?
 		  for (byte i = 0; i <= 10; ++i) {
