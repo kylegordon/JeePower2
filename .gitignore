@@ -1,0 +1,5 @@
+.sconsign.dblite
+JeePower2.elf
+JeePower2.hex
+build/
+test/
