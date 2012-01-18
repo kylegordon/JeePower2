@@ -174,21 +174,18 @@ void loop(){
 		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
 		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
-			  // Only whilst counting upwards, buzz periodically to indicate that we're in this state.
-			  // Maybe a low, high tone?
-			  for (byte i = 0; i <= 10; ++i) {
-				  digitalWrite(stateLED, flasher);
-				  if (flasher) {
-					  tone(buzzPin,BuzzLowTone,250);
-					  delay(250);
-					  tone(buzzPin,BuzzHighTone,250);
-					  delay(250);
-					  noTone(buzzPin); 
-				  }
-				  flasher = !flasher;
-				  delay(250);
-			  }
-
+				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
+				// Maybe a low, high tone?
+				digitalWrite(stateLED, flasher);
+				if (flasher) {
+					 tone(buzzPin,BuzzLowTone,250);
+					 delay(250);
+					 tone(buzzPin,BuzzHighTone,250);
+					 delay(250);
+					 noTone(buzzPin); 
+				}
+				flasher = !flasher;
+				delay(250);
 		  }
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
 				// Turn on the Main output and the GPIO relay
@@ -231,18 +228,16 @@ void loop(){
 		  // delay(1000);
 		  // Have a periodic buzzer tone to indicate this state
 		  // maybe a high, low tone?
-		  for (byte i = 0; i <= 10; ++i) {
-			  digitalWrite(stateLED, flasher);
-			  if (flasher) {
-				  tone(buzzPin,BuzzHighTone,250);
-				  delay(250);
-				  tone(buzzPin,BuzzLowTone,250);
-				  delay(250);
-				  noTone(buzzPin);       
-			  }
-			  flasher = !flasher;
-			  delay(250);
+		  digitalWrite(stateLED, flasher);
+		  if (flasher) {
+				tone(buzzPin,BuzzHighTone,250);
+				delay(250);
+				tone(buzzPin,BuzzLowTone,250);
+				delay(250);
+				noTone(buzzPin);       
 		  }
+		  flasher = !flasher;
+		  delay(250);
 
 	 }
 
