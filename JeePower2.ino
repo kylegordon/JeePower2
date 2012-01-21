@@ -202,6 +202,7 @@ void loop(){
 				relays.digiWrite2(HIGH); // Turn on the GPIO indicator output
 				GPIOState = 1;
 				GPIOOffTime = 0; // Could this be combined with GPIOState?
+				digitalWrite(stateLED, HIGH);
 		  }
 	 }
 
