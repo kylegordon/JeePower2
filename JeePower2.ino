@@ -159,8 +159,8 @@ void loop(){
 	 if (OilState == 0 && OilPressureOffMillis == 0) {
 		  // The oil light is off. We're good to go
 		  if (DEBUG) { Serial.println("Oil pressure warning away. Starting"); }
-		  delay(1000);
 		  OilPressureOffMillis = CurrentMillis;
+		  delay(1000);
 	 }
 
 	 if (IgnitionState == 1 && IgnitionOnMillis == 0) {
