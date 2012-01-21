@@ -152,13 +152,13 @@ void loop(){
 
 	 if (OilState  == 1 && OilPressureOffMillis != 0) {
 		  // The oil light is on. We're not ready to start up yet
-		  if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
+		  if (DEBUG) { Serial.println("Oil pressure warning."); }
 		  delay(1000);
 		  OilPressureOffMillis = 0;
 	 }
 	 if (OilState == 0 && OilPressureOffMillis == 0) {
 		  // The oil light is off. We're good to go
-		  if (DEBUG) { Serial.println("Oil pressure warning away. Starting"); }
+		  if (DEBUG) { Serial.println("Oil pressure ok."); }
 		  OilPressureOffMillis = CurrentMillis;
 		  delay(1000);
 	 }
@@ -178,7 +178,8 @@ void loop(){
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
 		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
 		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
-		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
+		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout)) { 
+//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
 				// Maybe a low, high tone?
 				digitalWrite(stateLED, flasher);
