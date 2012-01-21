@@ -179,7 +179,7 @@ void loop(){
 		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
 		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout)) { 
-//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
+				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
 				// Maybe a low, high tone?
 				digitalWrite(stateLED, flasher);
