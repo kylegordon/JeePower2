@@ -165,19 +165,10 @@ void loop(){
 
 	 if (IgnitionState == 1 && IgnitionOnMillis == 0) {
 		  // Ignition has just been turned on, and time has to be stored and made ready for counting up.
-	//	  if (IgnitionState == 1 && OilState == 0) {
-				// All is compliant. Store the time this happened at
-				IgnitionOnMillis = CurrentMillis;
-				delay(1000);
-				if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
-		//		tone(buzzPin,BuzzHighTone,250);
-		//		delay(250);
-		//		noTone(buzzPin);
-		//		tone(buzzPin,BuzzHighTone,250);
-		//		delay(250);                       
-		//		noTone(buzzPin);  
-		//		delay(1000);
-	//	  }
+		  // All is compliant. Store the time this happened at
+		  IgnitionOnMillis = CurrentMillis;
+		  if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
+		  delay(1000);
 	 }
 
 	 if (IgnitionOnMillis != 0 && OilPressureOffMillis != 0) {
