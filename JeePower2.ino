@@ -1,15 +1,15 @@
 // vim :ts=3:sw=4:sts=4
 /*
-	 Control relay actived PSU by monitoring ignition and oil pressure state.
+	Control relay actived PSU by monitoring ignition and oil pressure state.
 
-	 created 2011
-	 by Kyle Gordon <kyle@lodge.glasgownet.com>
+	created 2011
+	by Kyle Gordon <kyle@lodge.glasgownet.com>
 
-	 http://lodge.glasgownet.com
-*/
+http://lodge.glasgownet.com
+ */
 
 /*                 JeeNode / JeeNode USB / JeeSMD
-						  -------|-----------------------|----|-----------------------|----
+						 -------|-----------------------|----|-----------------------|----
 						 |       |D3  A1 [Port2]  D5     |    |D3  A0 [port1]  D4     |    |
 						 |-------|IRQ AIO +3V GND DIO PWR|    |IRQ AIO +3V GND DIO PWR|    |
 						 | D1|TXD|                                           ---- ----     |
@@ -20,7 +20,7 @@
 						 | D0|RXD|                                           ---- ----     |
 						 |-------|PWR DIO GND +3V AIO IRQ|    |PWR DIO GND +3V AIO IRQ|    |
 						 |       |    D6 [Port3]  A2  D3 |    |    D7 [Port4]  A3  D3 |    |
-						  -------|-----------------------|----|-----------------------|----
+						 -------|-----------------------|----|-----------------------|----
  */
 
 
@@ -136,17 +136,17 @@ void loop(){
 	 boolean IgnitionState = !optoIn.digiRead2();
 	 boolean OilState = !optoIn.digiRead();
 
-	// If anything has changed, beep for a moment and take a slight pause
-	if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
-            tone(buzzPin,BuzzHighTone,250);
-            delay(250);
-            noTone(buzzPin);
-            tone(buzzPin,BuzzHighTone,250);
-            delay(250);
-            noTone(buzzPin);
-            delay(1000);
-}
-	OldIgnitionState = IgnitionState;
+	 // If anything has changed, beep for a moment and take a slight pause
+	 if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
+		  tone(buzzPin,BuzzHighTone,250);
+		  delay(250);
+		  noTone(buzzPin);
+		  tone(buzzPin,BuzzHighTone,250);
+		  delay(250);
+		  noTone(buzzPin);
+		  delay(1000);
+	 }
+	 OldIgnitionState = IgnitionState;
 	 OldOilState = OilState;
 
 
@@ -217,15 +217,15 @@ void loop(){
 		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
 		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
-			  // Looks like the ignition is off and staying off
-			  relays.digiWrite2(LOW); // Turn off the GPIO indicator output
-			  GPIOState = 0;
-			  if (GPIOOffTime == 0) {
-				  GPIOOffTime = CurrentMillis;
-			  }
-		 }
+				// Looks like the ignition is off and staying off
+				relays.digiWrite2(LOW); // Turn off the GPIO indicator output
+				GPIOState = 0;
+				if (GPIOOffTime == 0) {
+					 GPIOOffTime = CurrentMillis;
+				}
+		  }
 	 }
-	 
+
 	 // If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
 	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1)) {
 		  // We're waiting for the main timeout to expire now
@@ -255,49 +255,49 @@ void loop(){
 	 }
 
 	 if (DEBUG) { 
-		Serial.println("---");
-		Serial.print("CurrentMillis               : "); Serial.println(CurrentMillis);
-	 	Serial.print("IgnitionOnTimeout           : "); Serial.println(IgnitionOnTimeout);
-	 	Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout); 
-		Serial.print("OilPressureOffTimeout       : "); Serial.println(OilPressureOffTimeout);
-	 	Serial.print("IgnitionOnMillis            : "); Serial.println(IgnitionOnMillis);
-	 	Serial.print("IgnitionOffMillis           : "); Serial.println(IgnitionOffMillis);
-		Serial.print("OilPressureOffMillis        : "); Serial.println(OilPressureOffMillis);
-	 	Serial.print("GPIOOffTimeout              : "); Serial.println(GPIOOffTimeout);
-		Serial.print("GPIOOffTime                 : "); Serial.println(GPIOOffTime);
-		Serial.print("IgnitionState               : "); Serial.println(IgnitionState);
-		Serial.print("OilState                    : "); Serial.println(OilState);
-		Serial.print("MainPowerState              : "); Serial.println(MainPowerState);
-      Serial.println("===");
-		delay(1000);
-	}
+		  Serial.println("---");
+		  Serial.print("CurrentMillis               : "); Serial.println(CurrentMillis);
+		  Serial.print("IgnitionOnTimeout           : "); Serial.println(IgnitionOnTimeout);
+		  Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout); 
+		  Serial.print("OilPressureOffTimeout       : "); Serial.println(OilPressureOffTimeout);
+		  Serial.print("IgnitionOnMillis            : "); Serial.println(IgnitionOnMillis);
+		  Serial.print("IgnitionOffMillis           : "); Serial.println(IgnitionOffMillis);
+		  Serial.print("OilPressureOffMillis        : "); Serial.println(OilPressureOffMillis);
+		  Serial.print("GPIOOffTimeout              : "); Serial.println(GPIOOffTimeout);
+		  Serial.print("GPIOOffTime                 : "); Serial.println(GPIOOffTime);
+		  Serial.print("IgnitionState               : "); Serial.println(IgnitionState);
+		  Serial.print("OilState                    : "); Serial.println(OilState);
+		  Serial.print("MainPowerState              : "); Serial.println(MainPowerState);
+		  Serial.println("===");
+		  delay(1000);
+	 }
 
 
-	// ==================================
-	// Below is scrap
+	 // ==================================
+	 // Below is scrap
 
-				
+
 	 /*
 
-	 elapsedMillis = CurrentMillis - storedMillis;
-	 if (elapsedMillis > mainontimeout) { active = 1; }
+		 elapsedMillis = CurrentMillis - storedMillis;
+		 if (elapsedMillis > mainontimeout) { active = 1; }
 
 
-	 if (mainontimeout <= elapsedMillis) {
-		  // mainontimeout is less than the elapsed time
-		  // Turn everything on
-		  if (DEBUG) { Serial.print("mainontimeout expired"); }
+		 if (mainontimeout <= elapsedMillis) {
+	 // mainontimeout is less than the elapsed time
+	 // Turn everything on
+	 if (DEBUG) { Serial.print("mainontimeout expired"); }
 	 }
 	 if (gpioofftimeout <= elapsedMillis) {
-		  // gpioofftimeout is less than the elapsed time
-		  // Turn off the GPIO output
-		  if (DEBUG) { Serial.print("gpioofftimeout expired"); }
+	 // gpioofftimeout is less than the elapsed time
+	 // Turn off the GPIO output
+	 if (DEBUG) { Serial.print("gpioofftimeout expired"); }
 	 }
 	 if (mainofftimeout <= elapsedMillis) {
-		  // mainofftimeout is less than the elapsed time
-		  // Turn the main output off
-		  if (DEBUG) { Serial.print("mainofftimeout expired"); }
+	 // mainofftimeout is less than the elapsed time
+	 // Turn the main output off
+	 if (DEBUG) { Serial.print("mainofftimeout expired"); }
 	 }
 
-	 */
+	  */
 }
