@@ -42,7 +42,7 @@ const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
 int IgnitionOnTimeout =	30000;	  // Timeout before confirming ignition is on
 int IgnitionOffTimeout = 30000;  // Timeout before confirming ignition is off (and turning off the GPIO relay)
-int OilPressureOffTimeout = 1000; // Timeout before confirming oil pressure warning is off
+int OilPressureOffTimeout = 30000; // Timeout before confirming oil pressure warning is off
 long IgnitionOnMillis = 0;	// Time the ignition came on
 long IgnitionOffMillis = 0;	// Time the ignition went off
 long OilPressureOffMillis = 0;	// time the oil pressure warning went off
@@ -67,8 +67,8 @@ boolean GPIOState = 0;			  // GPIO Relay state
 boolean active = 0;
 boolean timestored = 0;
 boolean flasher = 0;            // LED state level
-//boolean IgnitionState = 0;      // variable for reading the pushbutton status
-//boolean OilState = 0;           // variable for oil pressure state
+boolean OldIgnitionState = 0;   // Used to compare the ignition state
+boolean OldOilState = 0;        // Used to compare the oil warning state
 
 
 void setup() {
@@ -136,6 +136,20 @@ void loop(){
 	 boolean IgnitionState = !optoIn.digiRead2();
 	 boolean OilState = !optoIn.digiRead();
 
+	// If anything has changed, beep for a moment and take a slight pause
+	if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
+            tone(buzzPin,BuzzHighTone,250);
+            delay(250);
+            noTone(buzzPin);
+            tone(buzzPin,BuzzHighTone,250);
+            delay(250);
+            noTone(buzzPin);
+            delay(1000);
+}
+	OldIgnitionState = IgnitionState;
+	 OldOilState = OilState;
+
+
 	 if (OilState  == 1 && OilPressureOffMillis != 0) {
 		  // The oil light is on. We're not ready to start up yet
 		  if (DEBUG) { Serial.println("Oil pressure warning. Not starting"); }
@@ -156,13 +170,13 @@ void loop(){
 				IgnitionOnMillis = CurrentMillis;
 				delay(1000);
 				if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
-				tone(buzzPin,BuzzHighTone,250);
-				delay(250);
-				noTone(buzzPin);
-				tone(buzzPin,BuzzHighTone,250);
-				delay(250);                       
-				noTone(buzzPin);  
-				delay(1000);
+		//		tone(buzzPin,BuzzHighTone,250);
+		//		delay(250);
+		//		noTone(buzzPin);
+		//		tone(buzzPin,BuzzHighTone,250);
+		//		delay(250);                       
+		//		noTone(buzzPin);  
+		//		delay(1000);
 	//	  }
 	 }
 
