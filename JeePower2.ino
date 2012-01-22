@@ -46,7 +46,8 @@ int OilPressureOffTimeout = 30000; // Timeout before confirming oil pressure war
 long IgnitionOnMillis = 0;	// Time the ignition came on
 long IgnitionOffMillis = 0;	// Time the ignition went off
 long OilPressureOffMillis = 0;	// time the oil pressure warning went off
-int GPIOOffTimeout = 10000;     // Time to time to give the Bifferboard to shut down (10 minutes)
+//int GPIOOffTimeout = 300000;     // Time to time to give the Bifferboard to shut down (10 minutes)
+int GPIOOffTimeout = 10000;
 
 long GPIOOffTime = 0;				  // Time the GPIO relay is disabled
 
@@ -178,7 +179,7 @@ void loop(){
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
 		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
 		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
-		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout)) { 
+		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) { 
 				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
 				// Maybe a low, high tone?
