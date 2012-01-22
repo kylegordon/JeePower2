@@ -108,7 +108,7 @@ void setup() {
 		  if (flasher) {tone(buzzPin,BuzzLowTone,1000); }
 		  delay(250);
 		  if (flasher) {noTone(buzzPin); }
-		  flasher = !flasher;
+		  // flasher = !flasher;
 	 }
 	 if (DEBUG) { Serial.println("Ready"); }
 	 if (DEBUG) {
@@ -191,7 +191,7 @@ void loop(){
 					 delay(250);
 					 noTone(buzzPin); 
 				}
-				flasher = !flasher;
+				// flasher = !flasher;
 				delay(250);
 		  }
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
@@ -216,9 +216,12 @@ void loop(){
 		  }
 
 	 }
+
 	 if (IgnitionOffMillis != 0) {
 		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
 		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
+		  digitalWrite(stateLED, flasher);
+		  // flasher = !flasher;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
 				// Looks like the ignition is off and staying off
 				relays.digiWrite2(LOW); // Turn off the GPIO indicator output
@@ -244,7 +247,7 @@ void loop(){
 				delay(250);
 				noTone(buzzPin);       
 		  }
-		  flasher = !flasher;
+		  // flasher = !flasher;
 		  delay(250);
 
 	 }
@@ -255,7 +258,10 @@ void loop(){
 		  // Indicate via a signature buzz tone
 		  relays.digiWrite(LOW); // Turn off the ATX power
 		  MainPowerState = 0;
+		  IgnitionOffMillis = 0;
 	 }
+
+	 flasher = !flasher;
 
 	 if (DEBUG) { 
 		  Serial.println("---");
