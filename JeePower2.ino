@@ -108,7 +108,7 @@ void setup() {
 		  if (flasher) {tone(buzzPin,BuzzLowTone,1000); }
 		  delay(250);
 		  if (flasher) {noTone(buzzPin); }
-		  // flasher = !flasher;
+		   flasher = !flasher;
 	 }
 	 if (DEBUG) { Serial.println("Ready"); }
 	 if (DEBUG) {
