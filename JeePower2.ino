@@ -43,16 +43,16 @@ boolean DEBUG = 1;
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-int IgnitionOnTimeout =	30000;	  // Timeout before confirming ignition is on
-int IgnitionOffTimeout = 30000;  // Timeout before confirming ignition is off (and turning off the GPIO relay)
-int OilPressureOffTimeout = 30000; // Timeout before confirming oil pressure warning is off
-long IgnitionOnMillis = 0;	// Time the ignition came on
-long IgnitionOffMillis = 0;	// Time the ignition went off
-long OilPressureOffMillis = 0;	// time the oil pressure warning went off
-//int GPIOOffTimeout = 300000;     // Time to time to give the Bifferboard to shut down (10 minutes)
+int IgnitionOnTimeout =	30000;		// Timeout before confirming ignition is on
+int IgnitionOffTimeout = 30000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
+int OilPressureOffTimeout = 30000;	// Timeout before confirming oil pressure warning is off
+long IgnitionOnMillis = 0;				// Time the ignition came on
+long IgnitionOffMillis = 0;			// Time the ignition went off
+long OilPressureOffMillis = 0;		// time the oil pressure warning went off
+//int GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (10 minutes)
 int GPIOOffTimeout = 10000;
 
-long GPIOOffTime = 0;				  // Time the GPIO relay is disabled
+long GPIOOffTime = 0;					// Time the GPIO relay is disabled
 
 byte BuzzLowTone = 196;            // Buzzer low tone
 byte BuzzHighTone = 240;	// Buzzer high tone
