@@ -51,9 +51,6 @@ int GPIOOffTimeout = 10000;
 
 long GPIOOffTime = 0;				  // Time the GPIO relay is disabled
 
-int mainontimeout = 30000;      // time to wait before turning on (30 seconds)
-int mainofftimeout = 90000;      // time to wait before turning off (15 minutes)
-
 long previousMillis = 0;        // last update time
 long elapsedMillis = 0;         // elapsed time
 long storedMillis = 0;
