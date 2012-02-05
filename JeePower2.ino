@@ -1,6 +1,9 @@
 // vim :ts=3:sw=4:sts=4
 /*
-	Control relay actived PSU by monitoring ignition and oil pressure state.
+	Control relay activated PSU by monitoring ignition and oil pressure state.
+	A timer controls the power up state to ensure the engine is running and stable before bringing up the system
+	Another timer will trigger when ignition is lost. If ignition is off for over a certain time, another relay is
+	turned off to signal the Bifferboard. Once a secondary timer expires, the main power relay is deactivated.
 
 	created 2011
 	by Kyle Gordon <kyle@lodge.glasgownet.com>
