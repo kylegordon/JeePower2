@@ -281,32 +281,4 @@ void loop(){
 		  delay(1000);
 	 }
 
-
-	 // ==================================
-	 // Below is scrap
-
-
-	 /*
-
-		 elapsedMillis = CurrentMillis - storedMillis;
-		 if (elapsedMillis > mainontimeout) { active = 1; }
-
-
-		 if (mainontimeout <= elapsedMillis) {
-	 // mainontimeout is less than the elapsed time
-	 // Turn everything on
-	 if (DEBUG) { Serial.print("mainontimeout expired"); }
-	 }
-	 if (gpioofftimeout <= elapsedMillis) {
-	 // gpioofftimeout is less than the elapsed time
-	 // Turn off the GPIO output
-	 if (DEBUG) { Serial.print("gpioofftimeout expired"); }
-	 }
-	 if (mainofftimeout <= elapsedMillis) {
-	 // mainofftimeout is less than the elapsed time
-	 // Turn the main output off
-	 if (DEBUG) { Serial.print("mainofftimeout expired"); }
-	 }
-
-	  */
 }
