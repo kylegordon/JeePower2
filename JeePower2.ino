@@ -51,23 +51,15 @@ int GPIOOffTimeout = 10000;
 
 long GPIOOffTime = 0;				  // Time the GPIO relay is disabled
 
-long previousMillis = 0;        // last update time
-long elapsedMillis = 0;         // elapsed time
-long storedMillis = 0;
-
-long flashtarget = 0;           // Used for flashing the LED to indicate what is happening
 byte BuzzLowTone = 196;            // Buzzer low tone
 byte BuzzHighTone = 240;	// Buzzer high tone
 
 boolean MainPowerState = 0;	  // Main ATX Relay state
 boolean GPIOState = 0;			  // GPIO Relay state
 
-boolean active = 0;
-boolean timestored = 0;
 boolean flasher = 0;            // LED state level
 boolean OldIgnitionState = 0;   // Used to compare the ignition state
 boolean OldOilState = 0;        // Used to compare the oil warning state
-
 
 void setup() {
 	 if (DEBUG) {                // If we want to see the pin values for debugging...
