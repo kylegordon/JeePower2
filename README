@@ -13,11 +13,14 @@ The current use for the indication relay is to indicate to a Bifferboard over th
 BUILDING
 --------
 
-Using scons, in the downloaded directory, execute the following whilst substiting in the correct parameters for your environment
+Make sure you have avr-libc installed, along with the latest copy of the jeelib libraries from https://github.com/jcw/jeelib
+
+Using scons, in the downloaded directory, execute the following whilst substituting in the correct parameters for your environment.
 
 scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno
 
 UPLOADING
+---------
 
 As above, but append 'upload' to the end
 
