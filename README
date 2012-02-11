@@ -13,7 +13,7 @@ The current use for the indication relay is to indicate to a Bifferboard over th
 BUILDING
 --------
 
-Make sure you have avr-libc installed, along with the latest copy of the jeelib libraries from https://github.com/jcw/jeelib
+Make sure you have avr-libc and avrdude installed, along with the latest copy of the jeelib libraries from https://github.com/jcw/jeelib
 
 Using scons, in the downloaded directory, execute the following whilst substituting in the correct parameters for your environment.
 
