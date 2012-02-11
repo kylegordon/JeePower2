@@ -37,7 +37,7 @@ Port relays (4);     // Port 4 : Output relays
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-boolean DEBUG = 1;
+boolean DEBUG = 0;
 
 // set pin numbers:
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
@@ -49,8 +49,7 @@ int OilPressureOffTimeout = 30000;	// Timeout before confirming oil pressure war
 long IgnitionOnMillis = 0;				// Time the ignition came on
 long IgnitionOffMillis = 0;			// Time the ignition went off
 long OilPressureOffMillis = 0;		// time the oil pressure warning went off
-//int GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (10 minutes)
-int GPIOOffTimeout = 10000;
+int GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (10 minutes)
 
 long GPIOOffTime = 0;					// Time the GPIO relay is disabled
 
