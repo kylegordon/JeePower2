@@ -9,3 +9,16 @@ It monitors vehicle ignition and oil pressure. Only when the oil pressure warnin
 If the ignition is off, it will run a countdown timer before turning off a relay that's used to indicate an impending loss of power. After another timer has expired, it will kill the main power.
 
 The current use for the indication relay is to indicate to a Bifferboard over the GPIO pins that the power will be lost. The Bifferboard does not support ACPI, so another method had to be found. A python script monitors the state of the input, and will initiate a shutdown if the input is brought low. If the Arduino lowers this input, and then the ignition is brought back on, the Arduino will continue the shut down process and then restart the whole system when appropriate, as there is no way to interrupt the shutdown once it's started on the Bifferboard.
+
+BUILDING
+--------
+
+Using scons, in the downloaded directory, execute the following whilst substiting in the correct parameters for your environment
+
+scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno
+
+UPLOADING
+
+As above, but append 'upload' to the end
+
+scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno upload
