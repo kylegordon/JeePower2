@@ -64,10 +64,8 @@ boolean OldIgnitionState = 0;   // Used to compare the ignition state
 boolean OldOilState = 0;        // Used to compare the oil warning state
 
 void setup() {
-	 if (DEBUG) {                // If we want to see the pin values for debugging...
-		  Serial.begin(57600);    // ...set up the serial ouput on 0004 style
-		  Serial.println("\n[cartracker]");
-	 }
+	Serial.begin(57600);    // ...set up the serial ouput on 0004 style
+	Serial.println("\n[cartracker]");
 
 	 // Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
 	 // rf12_initialize(30, RF12_868MHZ, 5);
