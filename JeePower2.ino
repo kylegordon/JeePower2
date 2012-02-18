@@ -210,7 +210,9 @@ void loop(){
 
 	 if (IgnitionOffMillis != 0) {
 		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
-		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
+		  if (DEBUG) {
+			Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
+		  }
 		  digitalWrite(stateLED, flasher);
 		  // flasher = !flasher;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
