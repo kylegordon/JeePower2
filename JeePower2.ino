@@ -133,7 +133,7 @@ void loop(){
 			 Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
 			 Serial.print("OldOilState      : "); Serial.println(OldOilState);
 			 Serial.print("OilState         : "); Serial.println(OilState);
-			 delay(10000);
+			 delay(5000);
 		 }
 		  tone(buzzPin,BuzzHighTone,250);
 		  delay(250);
