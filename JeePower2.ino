@@ -37,7 +37,7 @@ Port relays (4);     // Port 4 : Output relays
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-boolean DEBUG = 0;
+boolean DEBUG = 1;
 
 // set pin numbers:
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
@@ -128,6 +128,13 @@ void loop(){
 
 	 // If anything has changed, beep for a moment and take a slight pause
 	 if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
+		 if (DEBUG) {
+			 Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
+			 Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
+			 Serial.print("OldOilState      : "); Serial.println(OldOilState);
+			 Serial.print("OilState         : "); Serial.println(OilState);
+			 delay(10000);
+		 }
 		  tone(buzzPin,BuzzHighTone,250);
 		  delay(250);
 		  noTone(buzzPin);
