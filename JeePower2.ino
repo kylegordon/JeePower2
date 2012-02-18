@@ -166,8 +166,10 @@ void loop(){
 		  IgnitionOffMillis = 0 ;
 		  long IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
-		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
-		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
+		  if (DEBUG) {
+		  	Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
+		  	Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
+		  }
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) { 
 				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
