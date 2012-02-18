@@ -233,7 +233,8 @@ void loop(){
 	 }
 
 	 // If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
-	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1)) {
+	 // Only go in here if the ignition is off as well
+	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1) && (IgnitionState == 0)) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
 		  // delay(1000);
