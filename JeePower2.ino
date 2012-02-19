@@ -44,7 +44,7 @@ const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
 int IgnitionOnTimeout =	30000;		// Timeout before confirming ignition is on
-int IgnitionOffTimeout = 30000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
+int IgnitionOffTimeout = 60000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
 int OilPressureOffTimeout = 30000;	// Timeout before confirming oil pressure warning is off
 long IgnitionOnMillis = 0;				// Time the ignition came on
 long IgnitionOffMillis = 0;			// Time the ignition went off
