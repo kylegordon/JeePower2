@@ -37,19 +37,19 @@ Port relays (4);     // Port 4 : Output relays
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-boolean DEBUG = 0;
+boolean DEBUG = 1;
 
 // set pin numbers:
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
 int IgnitionOnTimeout =	30000;		// Timeout before confirming ignition is on
-int IgnitionOffTimeout = 30000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
+int IgnitionOffTimeout = 60000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
 int OilPressureOffTimeout = 30000;	// Timeout before confirming oil pressure warning is off
 long IgnitionOnMillis = 0;				// Time the ignition came on
 long IgnitionOffMillis = 0;			// Time the ignition went off
 long OilPressureOffMillis = 0;		// time the oil pressure warning went off
-int GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (10 minutes)
+long GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (5 minutes)
 
 long GPIOOffTime = 0;					// Time the GPIO relay is disabled
 
@@ -64,10 +64,8 @@ boolean OldIgnitionState = 0;   // Used to compare the ignition state
 boolean OldOilState = 0;        // Used to compare the oil warning state
 
 void setup() {
-	 if (DEBUG) {                // If we want to see the pin values for debugging...
-		  Serial.begin(57600);    // ...set up the serial ouput on 0004 style
-		  Serial.println("\n[cartracker]");
-	 }
+	Serial.begin(57600);    // ...set up the serial ouput on 0004 style
+	Serial.println("\n[cartracker]");
 
 	 // Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
 	 // rf12_initialize(30, RF12_868MHZ, 5);
@@ -130,6 +128,13 @@ void loop(){
 
 	 // If anything has changed, beep for a moment and take a slight pause
 	 if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
+		 if (DEBUG) {
+			 Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
+			 Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
+			 Serial.print("OldOilState      : "); Serial.println(OldOilState);
+			 Serial.print("OilState         : "); Serial.println(OilState);
+			 delay(5000);
+		 }
 		  tone(buzzPin,BuzzHighTone,250);
 		  delay(250);
 		  noTone(buzzPin);
@@ -151,7 +156,7 @@ void loop(){
 	 if (OilState == 0 && OilPressureOffMillis == 0) {
 		  // The oil light is off. We're good to go
 		  if (DEBUG) { Serial.println("Oil pressure ok."); }
-		  OilPressureOffMillis = CurrentMillis;
+		          OilPressureOffMillis = CurrentMillis;
 		  delay(1000);
 	 }
 
@@ -168,8 +173,10 @@ void loop(){
 		  IgnitionOffMillis = 0 ;
 		  long IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
-		  Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
-		  Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
+		  if (DEBUG) {
+		  	Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
+		  	Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
+		  }
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) { 
 				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
 				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
@@ -210,7 +217,9 @@ void loop(){
 
 	 if (IgnitionOffMillis != 0) {
 		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
-		  Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
+		  if (DEBUG) {
+			Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
+		  }
 		  digitalWrite(stateLED, flasher);
 		  // flasher = !flasher;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
@@ -224,7 +233,11 @@ void loop(){
 	 }
 
 	 // If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
-	 if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1)) {
+	 // Only go in here if the ignition is off as well
+	 // FIXME
+	 // need to make sure this isn't activated if currentmillis is less than gpioofftimeout anyway
+	 // if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1) && (IgnitionState == 0)) {
+	 if ((GPIOOffTimeout > (CurrentMillis - GPIOOffTime)) && (MainPowerState == 1) && (IgnitionState == 0)) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
 		  // delay(1000);
