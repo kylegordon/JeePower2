@@ -148,29 +148,42 @@ void loop(){
 
 
 	 if (OilState  == 1 && OilPressureOffMillis != 0) {
-		  // The oil light is on. We're not ready to start up yet
-		  if (DEBUG) { Serial.println("Oil pressure warning."); }
-		  delay(1000);
+	 		/*
+				The oil light is on. We're not ready to start up yet
+			*/
+		  
+			if (DEBUG) { Serial.println("Oil pressure warning."); }
+		  delay(1000); // FIXME - put the delay(1000) inside the DEBUG clause.
 		  OilPressureOffMillis = 0;
 	 }
 	 if (OilState == 0 && OilPressureOffMillis == 0) {
-		  // The oil light is off. We're good to go
-		  if (DEBUG) { Serial.println("Oil pressure ok."); }
+		  /*
+				The oil light is off. We're good to go
+			*/
+					  
+			if (DEBUG) { Serial.println("Oil pressure ok."); }
 		          OilPressureOffMillis = CurrentMillis;
-		  delay(1000);
+		  delay(1000); // FIXME - Put the delay(1000) inside the DEBUG clause
 	 }
 
 	 if (IgnitionState == 1 && IgnitionOnMillis == 0) {
-		  // Ignition has just been turned on, and time has to be stored and made ready for counting up.
-		  // All is compliant. Store the time this happened at
+		  /*
+				Ignition has just been turned on, and time has to be stored and made ready for counting up.
+		  	All is compliant. Store the time this happened at
+			*/
+
 		  IgnitionOnMillis = CurrentMillis;
 		  if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
-		  delay(1000);
+		  delay(1000);	// FIXME - put the delay(1000) inside the DEBUG clause
 	 }
 
 	 if (IgnitionOnMillis != 0 && OilPressureOffMillis != 0) {
-		  // Ignition is on
-		  IgnitionOffMillis = 0 ;
+		  /*
+				Ignition is on, but the oil pressure is low or not present.
+				In this state, no power should be made available
+			*/
+		  
+			IgnitionOffMillis = 0 ;
 		  long IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
 		  if (DEBUG) {
@@ -179,8 +192,11 @@ void loop(){
 		  }
 		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) { 
 				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
-				// Only whilst counting upwards, buzz periodically to indicate that we're in this state.
-				// Maybe a low, high tone?
+        /*
+					In this state, the ignition has been on for longer than the timeout, but the main power output hasn't been enabled.
+					Whilst counting upwards, emit a low, high tone to indicate that power is coming up.
+				*/
+				
 				digitalWrite(stateLED, flasher);
 				if (flasher) {
 					 tone(buzzPin,BuzzLowTone,250);
@@ -193,21 +209,30 @@ void loop(){
 				delay(250);
 		  }
 		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
-				// Turn on the Main output and the GPIO relay
-				// This should be the main function when in a running state
+				/*
+					Ignition on timeout has been reached, and the oil pressure light has been off long enough to satisfy the conditions.
+					Turn on the Main output and the GPIO relay
+					This should be the main function when in a running state
+				*/
+
 				if (DEBUG) { Serial.println("Main power and GPIO is on"); }
-				relays.digiWrite(HIGH); // Turn on the ATX power
+				// Turn on the ATX power
+				relays.digiWrite(HIGH);
 				MainPowerState = 1;
-				relays.digiWrite2(HIGH); // Turn on the GPIO indicator output
+				// Turn on the GPIO indicator output
+				relays.digiWrite2(HIGH); 
 				GPIOState = 1;
-				GPIOOffTime = 0; // Could this be combined with GPIOState?
+				GPIOOffTime = 0; // FIXME - Could this be combined with GPIOState?
 				digitalWrite(stateLED, HIGH);
 		  }
 	 }
 
 	 if (IgnitionState == 0 && OilState == 0) {
-		  // Looks like we're turned off
-		  // Wrap this into one if statement?
+		  /*
+				Ignition is off, and the oil pressure light is off. Looks like we're turned off
+				Log the time the ignition went off so that we can start a countdown
+			*/
+
 		  if (IgnitionOffMillis == 0) {
 				IgnitionOffMillis = CurrentMillis;
 				IgnitionOnMillis = 0;
@@ -216,6 +241,11 @@ void loop(){
 	 }
 
 	 if (IgnitionOffMillis != 0) {
+	 		/*
+				Ignition countdown is running. 
+				If this continues to happen, expire and turn off the GPIO output, and then expire and turn off the ATX control output
+			*/
+
 		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
 		  if (DEBUG) {
 			Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
@@ -223,7 +253,10 @@ void loop(){
 		  digitalWrite(stateLED, flasher);
 		  // flasher = !flasher;
 		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
-				// Looks like the ignition is off and staying off
+				/*
+					The ignition timeout has been reached. Turn off the GPIO output
+				*/
+
 				relays.digiWrite2(LOW); // Turn off the GPIO indicator output
 				GPIOState = 0;
 				if (GPIOOffTime == 0) {
@@ -232,17 +265,21 @@ void loop(){
 		  }
 	 }
 
-	 // If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
-	 // Only go in here if the ignition is off as well
-	 // FIXME
-	 // need to make sure this isn't activated if currentmillis is less than gpioofftimeout anyway
+		/*
+			If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
+			Only go in here if the ignition is off as well
+	 		FIXME - need to make sure this isn't activated if currentmillis is less than gpioofftimeout anyway
+		*/
+
 	 // if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1) && (IgnitionState == 0)) {
 	 if ((GPIOOffTimeout > (CurrentMillis - GPIOOffTime)) && (MainPowerState == 1) && (IgnitionState == 0)) {
 		  // We're waiting for the main timeout to expire now
 		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
-		  // delay(1000);
-		  // Have a periodic buzzer tone to indicate this state
-		  // maybe a high, low tone?
+		  // delay(1000); FIXME - put this debug(1000) into the DEBUG clause
+			/*
+				Emit a high, low tone ot indicate that we're counting down
+			*/
+
 		  digitalWrite(stateLED, flasher);
 		  if (flasher) {
 				tone(buzzPin,BuzzHighTone,250);
