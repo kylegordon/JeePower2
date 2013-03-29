@@ -1,4 +1,4 @@
-// vim :ts=3:sw=4:sts=4
+// vim :ts=2:sw=4:sts=4
 /*
 	Control relay activated PSU by monitoring ignition and oil pressure state.
 	A timer controls the power up state to ensure the engine is running and stable before bringing up the system
