@@ -17,6 +17,7 @@ env:
 
 install:
     - pip install -U platformio
+    - platformio lib install 252
 
 script:
     - platformio ci --board=uno
