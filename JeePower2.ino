@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 // vim :ts=2:sw=4:sts=4
 /*
 	Control relay activated PSU by monitoring ignition and oil pressure state.
