@@ -1,9 +1,23 @@
-language: c
-compiler:
-  - gcc
-before_script:
-  - sudo apt-get install gcc-avr avr-libc libelf-dev pkg-config freeglut3 freeglut3-dev scons
-  - wget -O "arduino.tar.gz" "http://arduino.googlecode.com/files/arduino-1.0.5-linux64.tgz"
-  - tar xzf arduino.tar.gz
-  - git clone git://github.com/jcw/jeelib.git $(pwd)/arduino-1.0.5/libraries/jeelib/
-script: scons ARDUINO_HOME="$(pwd)/arduino-1.0.5"
+language: python
+python:
+    - "2.7"
+
+# Cache PlatformIO packages using Travis CI container-based infrastructure
+sudo: false
+
+git:
+    submodules: true
+
+cache:
+    directories:
+        - "~/.platformio"
+
+env:
+    - PLATFORMIO_CI_SRC=JeePower2.ino
+
+install:
+    - pip install -U platformio
+    - platformio lib install 252
+
+script:
+    - platformio ci --board=uno

@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 // vim :ts=2:sw=4:sts=4
 /*
 	Control relay activated PSU by monitoring ignition and oil pressure state.
@@ -151,7 +153,7 @@ void loop(){
 	 		/*
 				The oil light is on. We're not ready to start up yet
 			*/
-		  
+
 			if (DEBUG) { Serial.println("Oil pressure warning."); }
 		  delay(1000); // FIXME - put the delay(1000) inside the DEBUG clause.
 		  OilPressureOffMillis = 0;
@@ -160,7 +162,7 @@ void loop(){
 		  /*
 				The oil light is off. We're good to go
 			*/
-					  
+
 			if (DEBUG) { Serial.println("Oil pressure ok."); }
 		          OilPressureOffMillis = CurrentMillis;
 		  delay(1000); // FIXME - Put the delay(1000) inside the DEBUG clause
@@ -182,7 +184,7 @@ void loop(){
 				Ignition is on, but the oil pressure is low or not present.
 				In this state, no power should be made available
 			*/
-		  
+
 			IgnitionOffMillis = 0 ;
 		  long IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
 		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
@@ -190,20 +192,20 @@ void loop(){
 		  	Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
 		  	Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
 		  }
-		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) { 
+		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) {
 				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
         /*
 					In this state, the ignition has been on for longer than the timeout, but the main power output hasn't been enabled.
 					Whilst counting upwards, emit a low, high tone to indicate that power is coming up.
 				*/
-				
+
 				digitalWrite(stateLED, flasher);
 				if (flasher) {
 					 tone(buzzPin,BuzzLowTone,250);
 					 delay(250);
 					 tone(buzzPin,BuzzHighTone,250);
 					 delay(250);
-					 noTone(buzzPin); 
+					 noTone(buzzPin);
 				}
 				// flasher = !flasher;
 				delay(250);
@@ -220,7 +222,7 @@ void loop(){
 				relays.digiWrite(HIGH);
 				MainPowerState = 1;
 				// Turn on the GPIO indicator output
-				relays.digiWrite2(HIGH); 
+				relays.digiWrite2(HIGH);
 				GPIOState = 1;
 				GPIOOffTime = 0; // FIXME - Could this be combined with GPIOState?
 				digitalWrite(stateLED, HIGH);
@@ -242,7 +244,7 @@ void loop(){
 
 	 if (IgnitionOffMillis != 0) {
 	 		/*
-				Ignition countdown is running. 
+				Ignition countdown is running.
 				If this continues to happen, expire and turn off the GPIO output, and then expire and turn off the ATX control output
 			*/
 
@@ -286,7 +288,7 @@ void loop(){
 				delay(250);
 				tone(buzzPin,BuzzLowTone,250);
 				delay(250);
-				noTone(buzzPin);       
+				noTone(buzzPin);
 		  }
 		  // flasher = !flasher;
 		  delay(250);
@@ -304,11 +306,11 @@ void loop(){
 
 	 flasher = !flasher;
 
-	 if (DEBUG) { 
+	 if (DEBUG) {
 		  Serial.println("---");
 		  Serial.print("CurrentMillis               : "); Serial.println(CurrentMillis);
 		  Serial.print("IgnitionOnTimeout           : "); Serial.println(IgnitionOnTimeout);
-		  Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout); 
+		  Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout);
 		  Serial.print("OilPressureOffTimeout       : "); Serial.println(OilPressureOffTimeout);
 		  Serial.print("IgnitionOnMillis            : "); Serial.println(IgnitionOnMillis);
 		  Serial.print("IgnitionOffMillis           : "); Serial.println(IgnitionOffMillis);
