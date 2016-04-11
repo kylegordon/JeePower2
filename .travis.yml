@@ -4,12 +4,13 @@ python:
 
 # Cache PlatformIO packages using Travis CI container-based infrastructure
 sudo: false
+
+git:
+    submodules: true
+
 cache:
     directories:
         - "~/.platformio"
-
-before_script:
-    - git submodule update --init --recursive 
 
 env:
     - PLATFORMIO_CI_SRC=JeePower2.ino
