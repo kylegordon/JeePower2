@@ -19,7 +19,7 @@ install:
     - pip install -U platformio
 
 before_script:
-    - cd kylegordon/JeePower2
+    - cd $(TRAVIS_BUILD_DIR)/kylegordon/JeePower2
     - git submodule update --init --recursive
 
 script:
