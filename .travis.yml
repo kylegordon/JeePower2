@@ -17,6 +17,8 @@ env:
 
 install:
     - pip install -U platformio
+    - cd JeePower2
+    - git submodule update --init --recursive
 
 script:
     - platformio ci --board=uno
