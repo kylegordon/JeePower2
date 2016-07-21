@@ -27,3 +27,33 @@ UPLOADING
 As above, but append 'upload' to the end
 
 scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno upload
+
+REWRITE IDEA
+------------
+
+Signal line from CPU to MCU to indicate current power state. (CPUState)
+Signal line from MCU to CPU to indicate desired power state. 
+MCU control of CPU power line.
+
+Rough pseudocode...
+
+if IgnitionState = on
+  Cancel shutdown timer
+  if CPUState = off
+    Sleep enough to overcome delay between OS turning off signal, and halting
+    Raise MCU to CPU line
+    Raise PowerSupplyState
+  elseif CPUState = on
+    pass
+  fi
+fi
+if IgnitionState = off
+  If ShutdownTimer = 0
+    Start ShutdownTimer
+  elseif ShutdownTimer > 30 seconds
+    Lower MCU to CPU line to signal shutdown
+  elseif ShutdownTimer > 120 seconds
+    Lower PowerSupplyState (to turn CPU off)
+    Go to Sleep
+  fi
+fi
