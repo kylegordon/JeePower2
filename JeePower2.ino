@@ -125,7 +125,7 @@ void loop(){
 			Serial.print("CPUState         : "); Serial.println(CPUState);
 			delay(5000);
 		}
-		BeepAlert(int BuzzHighTone);
+		BeepAlert(BuzzHighTone);
 		delay(1000);
 	}
 
@@ -166,7 +166,7 @@ fi
 
 		if (CPUState == 0) {
 			Serial.print("Turning on CPU, ATX and LED");
-			BeepAlert(int BuzzHighTone)
+			BeepAlert(BuzzHighTone);
 			delay(10000);
 			digitalWrite(stateLED, HIGH);
 			relays.digiWrite(HIGH);
