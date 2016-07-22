@@ -2,12 +2,7 @@
 
 // vim :ts=2:sw=4:sts=4
 /*
-	Control relay activated PSU by monitoring ignition and oil pressure state.
-	A timer controls the power up state to ensure the engine is running and stable before bringing up the system
-	Another timer will trigger when ignition is lost. If ignition is off for over a certain time, another relay is
-	turned off to signal the Bifferboard. Once a secondary timer expires, the main power relay is deactivated.
 
-	created 2011
 	by Kyle Gordon <kyle@lodge.glasgownet.com>
 
 http://lodge.glasgownet.com
@@ -31,10 +26,10 @@ http://lodge.glasgownet.com
 
 #include <JeeLib.h>
 
-Port optoIn (1);     // Port 1 : Optoisolator inputs
-PortI2C myI2C (2);      // Port 2 : I2C driven LCD display for debugging
+Port optoIn (1);                // Port 1 : Optoisolator inputs
+PortI2C myI2C (2);              // Port 2 : I2C driven LCD display for debugging
 // Port 3 : Buzzer on DIO and LED on AIO
-Port relays (4);     // Port 4 : Output relays
+Port relays (4);                // Port 4 : Output relays
 
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
@@ -45,29 +40,18 @@ boolean DEBUG = 1;
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-int IgnitionOnTimeout =	30000;		// Timeout before confirming ignition is on
-int IgnitionOffTimeout = 60000;		// Timeout before confirming ignition is off (and turning off the GPIO relay)
-int OilPressureOffTimeout = 30000;	// Timeout before confirming oil pressure warning is off
-long IgnitionOnMillis = 0;				// Time the ignition came on
-long IgnitionOffMillis = 0;			// Time the ignition went off
-long OilPressureOffMillis = 0;		// time the oil pressure warning went off
-long GPIOOffTimeout = 300000;		// This is the time between turning off the GPIO relay, and turning off the main relay (5 minutes)
+byte BuzzLowTone = 196;         // Buzzer low tone
+byte BuzzHighTone = 240;	      // Buzzer high tone
 
-long GPIOOffTime = 0;					// Time the GPIO relay is disabled
-
-byte BuzzLowTone = 196;            // Buzzer low tone
-byte BuzzHighTone = 240;	// Buzzer high tone
-
-boolean MainPowerState = 0;	  // Main ATX Relay state
-boolean GPIOState = 0;			  // GPIO Relay state
-
+boolean MainPowerState = 0;	    // Main ATX Relay state
 boolean flasher = 0;            // LED state level
-boolean OldIgnitionState = 0;   // Used to compare the ignition state
-boolean OldOilState = 0;        // Used to compare the oil warning state
+boolean OldCPUState = 0;
+boolean OldIgnitionState = 0;
+boolean ShutdownTimer = 0;			// shutdown timer counter. FIXME Use proper timers
 
 void setup() {
 	Serial.begin(57600);    // ...set up the serial ouput on 0004 style
-	Serial.println("\n[cartracker]");
+	Serial.println("\n[jeepower]");
 
 	 // Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
 	 // rf12_initialize(30, RF12_868MHZ, 5);
@@ -110,10 +94,6 @@ void setup() {
 	 }
 }
 
-// Take the time for every variable at the start
-// Compare each variable on every loop
-// If a variable reaches its limit, do something
-
 void loop(){
 
 	 // Sleepy::loseSomeTime() screws up serial output
@@ -124,17 +104,17 @@ void loop(){
 		  if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
 	 }
 
-	 // read the state of the ignition and oil pressure to tell if engine is running
+	 // Read the state of the ignition, and the CPU
 	 boolean IgnitionState = !optoIn.digiRead2();
-	 boolean OilState = !optoIn.digiRead();
+	 boolean CPUState = !optoIn.digiRead2();
 
 	 // If anything has changed, beep for a moment and take a slight pause
-	 if (OldOilState != OilState || OldIgnitionState != IgnitionState) {
+	 if (OldCPUState != CPUState || OldIgnitionState != IgnitionState) {
 		 if (DEBUG) {
 			 Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
 			 Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
-			 Serial.print("OldOilState      : "); Serial.println(OldOilState);
-			 Serial.print("OilState         : "); Serial.println(OilState);
+			 Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
+			 Serial.print("CPUState         : "); Serial.println(CPUState);
 			 delay(5000);
 		 }
 		  tone(buzzPin,BuzzHighTone,250);
@@ -145,183 +125,63 @@ void loop(){
 		  noTone(buzzPin);
 		  delay(1000);
 	 }
-	 OldIgnitionState = IgnitionState;
-	 OldOilState = OilState;
 
 
-	 if (OilState  == 1 && OilPressureOffMillis != 0) {
-	 		/*
-				The oil light is on. We're not ready to start up yet
-			*/
+/*
 
-			if (DEBUG) { Serial.println("Oil pressure warning."); }
-		  delay(1000); // FIXME - put the delay(1000) inside the DEBUG clause.
-		  OilPressureOffMillis = 0;
-	 }
-	 if (OilState == 0 && OilPressureOffMillis == 0) {
-		  /*
-				The oil light is off. We're good to go
-			*/
+if IgnitionState = on
+  Cancel shutdown timer
+  if CPUState = off
+    Sleep enough to overcome delay between OS turning off signal, and halting
+    Raise MCU to CPU line
+    Raise PowerSupplyState
+  elseif CPUState = on
+    pass
+  fi
+fi
+if IgnitionState = off
+  If ShutdownTimer = 0
+    Start ShutdownTimer
+  elseif ShutdownTimer > 30 seconds
+    Lower MCU to CPU line to signal shutdown
+  elseif ShutdownTimer > 120 seconds
+    Lower PowerSupplyState (to turn CPU off)
+    Go to Sleep
+  fi
+fi
 
-			if (DEBUG) { Serial.println("Oil pressure ok."); }
-		          OilPressureOffMillis = CurrentMillis;
-		  delay(1000); // FIXME - Put the delay(1000) inside the DEBUG clause
-	 }
+*/
 
-	 if (IgnitionState == 1 && IgnitionOnMillis == 0) {
-		  /*
-				Ignition has just been turned on, and time has to be stored and made ready for counting up.
-		  	All is compliant. Store the time this happened at
-			*/
+	if (IgnitionState == 1) {
+		// TODO Cancel the shutdown timer
+		// If the CPU is off, sleep for 10 seconds to clear any race between CPU
+		// signalling and halting, and then turn on the state LED, ATX power. and
+		// MCU to CPU signalling line.
 
-		  IgnitionOnMillis = CurrentMillis;
-		  if (DEBUG) { Serial.print("Storing ignition turn on time : "); Serial.println(IgnitionOnMillis); }
-		  delay(1000);	// FIXME - put the delay(1000) inside the DEBUG clause
-	 }
+		// FIXME If CPU has just shut down, do we toggle everything to wake up?
+		// FIXME If CPU is still starting up, we shouldn't do anything.
 
-	 if (IgnitionOnMillis != 0 && OilPressureOffMillis != 0) {
-		  /*
-				Ignition is on, but the oil pressure is low or not present.
-				In this state, no power should be made available
-			*/
-
-			IgnitionOffMillis = 0 ;
-		  long IgnitionOnElapsedMillis = CurrentMillis - IgnitionOnMillis;
-		  long OilPressureOffElapsedMillis = CurrentMillis - OilPressureOffMillis;
-		  if (DEBUG) {
-		  	Serial.print("IgnitionOnElapsedMillis     : "); Serial.println(IgnitionOnElapsedMillis);
-		  	Serial.print("OilPressureOffElapsedMillis : "); Serial.println(OilPressureOffElapsedMillis);
-		  }
-		  if ((IgnitionOnElapsedMillis < IgnitionOnTimeout) && (MainPowerState == 0)) {
-				//&& (OilPressureOffElapsedMillis < OilPressureOffTimeout)) {
-        /*
-					In this state, the ignition has been on for longer than the timeout, but the main power output hasn't been enabled.
-					Whilst counting upwards, emit a low, high tone to indicate that power is coming up.
-				*/
-
-				digitalWrite(stateLED, flasher);
-				if (flasher) {
-					 tone(buzzPin,BuzzLowTone,250);
-					 delay(250);
-					 tone(buzzPin,BuzzHighTone,250);
-					 delay(250);
-					 noTone(buzzPin);
-				}
-				// flasher = !flasher;
-				delay(250);
-		  }
-		  if ((IgnitionOnElapsedMillis > IgnitionOnTimeout) && (OilPressureOffElapsedMillis > OilPressureOffTimeout)) {
-				/*
-					Ignition on timeout has been reached, and the oil pressure light has been off long enough to satisfy the conditions.
-					Turn on the Main output and the GPIO relay
-					This should be the main function when in a running state
-				*/
-
-				if (DEBUG) { Serial.println("Main power and GPIO is on"); }
-				// Turn on the ATX power
-				relays.digiWrite(HIGH);
-				MainPowerState = 1;
-				// Turn on the GPIO indicator output
-				relays.digiWrite2(HIGH);
-				GPIOState = 1;
-				GPIOOffTime = 0; // FIXME - Could this be combined with GPIOState?
-				digitalWrite(stateLED, HIGH);
-		  }
-	 }
-
-	 if (IgnitionState == 0 && OilState == 0) {
-		  /*
-				Ignition is off, and the oil pressure light is off. Looks like we're turned off
-				Log the time the ignition went off so that we can start a countdown
-			*/
-
-		  if (IgnitionOffMillis == 0) {
-				IgnitionOffMillis = CurrentMillis;
-				IgnitionOnMillis = 0;
-		  }
-
-	 }
-
-	 if (IgnitionOffMillis != 0) {
-	 		/*
-				Ignition countdown is running.
-				If this continues to happen, expire and turn off the GPIO output, and then expire and turn off the ATX control output
-			*/
-
-		  long IgnitionOffElapsedMillis = CurrentMillis - IgnitionOffMillis;
-		  if (DEBUG) {
-			Serial.print("IgnitionOffElapsedMillis     : "); Serial.println(IgnitionOffElapsedMillis);
-		  }
-		  digitalWrite(stateLED, flasher);
-		  // flasher = !flasher;
-		  if (IgnitionOffElapsedMillis > IgnitionOffTimeout) {
-				/*
-					The ignition timeout has been reached. Turn off the GPIO output
-				*/
-
-				relays.digiWrite2(LOW); // Turn off the GPIO indicator output
-				GPIOState = 0;
-				if (GPIOOffTime == 0) {
-					 GPIOOffTime = CurrentMillis;
-				}
-		  }
-	 }
-
-		/*
-			If Elapsed GPIO Off time is less than the timeout, indicate that we're counting down
-			Only go in here if the ignition is off as well
-	 		FIXME - need to make sure this isn't activated if currentmillis is less than gpioofftimeout anyway
-		*/
-
-	 // if (((CurrentMillis - GPIOOffTime) < GPIOOffTimeout) && (MainPowerState == 1) && (IgnitionState == 0)) {
-	 if ((GPIOOffTimeout > (CurrentMillis - GPIOOffTime)) && (MainPowerState == 1) && (IgnitionState == 0)) {
-		  // We're waiting for the main timeout to expire now
-		  if (DEBUG) { Serial.println("GPIO off, main power still on. Waiting."); }
-		  // delay(1000); FIXME - put this debug(1000) into the DEBUG clause
-			/*
-				Emit a high, low tone ot indicate that we're counting down
-			*/
-
-		  digitalWrite(stateLED, flasher);
-		  if (flasher) {
-				tone(buzzPin,BuzzHighTone,250);
-				delay(250);
-				tone(buzzPin,BuzzLowTone,250);
-				delay(250);
-				noTone(buzzPin);
-		  }
-		  // flasher = !flasher;
-		  delay(250);
-
-	 }
-
-	 if (GPIOOffTime != 0 && (CurrentMillis - GPIOOffTime) > GPIOOffTimeout) {
-		  // The GPIO timeout has expired. Turn off the main output
-		  if (DEBUG) { Serial.println("Everything is off"); }
-		  // Indicate via a signature buzz tone
-		  relays.digiWrite(LOW); // Turn off the ATX power
-		  MainPowerState = 0;
-		  IgnitionOffMillis = 0;
-	 }
-
-	 flasher = !flasher;
-
-	 if (DEBUG) {
-		  Serial.println("---");
-		  Serial.print("CurrentMillis               : "); Serial.println(CurrentMillis);
-		  Serial.print("IgnitionOnTimeout           : "); Serial.println(IgnitionOnTimeout);
-		  Serial.print("IgnitionOffTimeout          : "); Serial.println(IgnitionOffTimeout);
-		  Serial.print("OilPressureOffTimeout       : "); Serial.println(OilPressureOffTimeout);
-		  Serial.print("IgnitionOnMillis            : "); Serial.println(IgnitionOnMillis);
-		  Serial.print("IgnitionOffMillis           : "); Serial.println(IgnitionOffMillis);
-		  Serial.print("OilPressureOffMillis        : "); Serial.println(OilPressureOffMillis);
-		  Serial.print("GPIOOffTimeout              : "); Serial.println(GPIOOffTimeout);
-		  Serial.print("GPIOOffTime                 : "); Serial.println(GPIOOffTime);
-		  Serial.print("IgnitionState               : "); Serial.println(IgnitionState);
-		  Serial.print("OilState                    : "); Serial.println(OilState);
-		  Serial.print("MainPowerState              : "); Serial.println(MainPowerState);
-		  Serial.println("===");
-		  delay(1000);
-	 }
+		if (CPUState == 0) {
+			Serial.print("Turning on CPU, ATX and LED");
+			delay(10000);
+			digitalWrite(stateLED, HIGH);
+			relays.digiWrite(HIGH);
+			relays.digiWrite2(HIGH);
+		} else if (CPUState == 1) {
+			Serial.print("CPU is reporting as being on");
+		}
+	}
+	if (IgnitionState == 0) {
+		if (ShutdownTimer == 0) {
+			// FIXME Start ShutdownTimer
+		} else if (ShutdownTimer > 30) {
+			// Stuff
+		} else if (ShutdownTimer > 120) {
+			// Turn off ATX, signalling line, and stateLED
+			digitalWrite(stateLED, LOW);
+			relays.digiWrite(LOW);
+			relays.digiWrite2(LOW);
+		}
+	}
 
 }
