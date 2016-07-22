@@ -49,6 +49,15 @@ boolean OldCPUState = 0;
 boolean OldIgnitionState = 0;
 boolean ShutdownTimer = 0;			// shutdown timer counter. FIXME Use proper timers
 
+void BeepAlert(int tonevalue) {
+	tone(buzzPin,tonevalue,250);
+	delay(250);
+	noTone(buzzPin);
+	tone(buzzPin,tonevalue,250);
+	delay(250);
+	noTone(buzzPin);
+}
+
 void setup() {
 	Serial.begin(57600);    // ...set up the serial ouput on 0004 style
 	Serial.println("\n[jeepower]");
@@ -95,36 +104,30 @@ void setup() {
 }
 
 void loop(){
+	// Sleepy::loseSomeTime() screws up serial output
+	//if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
+	unsigned long CurrentMillis = millis();
 
-	 // Sleepy::loseSomeTime() screws up serial output
-	 //if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
-	 unsigned long CurrentMillis = millis();
+	if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
+		if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
+	}
 
-	 if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
-		  if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
-	 }
+	// Read the state of the ignition, and the CPU
+	boolean IgnitionState = !optoIn.digiRead2();
+	boolean CPUState = !optoIn.digiRead2();
 
-	 // Read the state of the ignition, and the CPU
-	 boolean IgnitionState = !optoIn.digiRead2();
-	 boolean CPUState = !optoIn.digiRead2();
-
-	 // If anything has changed, beep for a moment and take a slight pause
-	 if (OldCPUState != CPUState || OldIgnitionState != IgnitionState) {
-		 if (DEBUG) {
-			 Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
-			 Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
-			 Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
-			 Serial.print("CPUState         : "); Serial.println(CPUState);
-			 delay(5000);
-		 }
-		  tone(buzzPin,BuzzHighTone,250);
-		  delay(250);
-		  noTone(buzzPin);
-		  tone(buzzPin,BuzzHighTone,250);
-		  delay(250);
-		  noTone(buzzPin);
-		  delay(1000);
-	 }
+	// If anything has changed, beep for a moment and take a slight pause
+	if (OldCPUState != CPUState || OldIgnitionState != IgnitionState) {
+		if (DEBUG) {
+			Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
+			Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
+			Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
+			Serial.print("CPUState         : "); Serial.println(CPUState);
+			delay(5000);
+		}
+		BeepAlert(int BuzzHighTone);
+		delay(1000);
+	}
 
 
 /*
@@ -163,6 +166,7 @@ fi
 
 		if (CPUState == 0) {
 			Serial.print("Turning on CPU, ATX and LED");
+			BeepAlert(int BuzzHighTone)
 			delay(10000);
 			digitalWrite(stateLED, HIGH);
 			relays.digiWrite(HIGH);
@@ -175,7 +179,7 @@ fi
 		if (ShutdownTimer == 0) {
 			// FIXME Start ShutdownTimer
 		} else if (ShutdownTimer > 30) {
-			// Stuff
+			BeepAlert(BuzzLowTone);
 		} else if (ShutdownTimer > 120) {
 			// Turn off ATX, signalling line, and stateLED
 			digitalWrite(stateLED, LOW);
