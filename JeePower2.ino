@@ -48,6 +48,7 @@ boolean flasher = 0;            // LED state level
 boolean OldCPUState = 0;
 boolean OldIgnitionState = 0;
 boolean ShutdownTimer = 0;			// shutdown timer counter. FIXME Use proper timers
+boolean StartupTimer = 0; 			// Startup timer to let the system boot before being able to send a shutdown signal
 
 void BeepAlert(int tonevalue) {
 	tone(buzzPin,tonevalue,250);
@@ -73,9 +74,9 @@ void setup() {
 	 rf12_easyInit(0);
 
 	 // Set up the relays as digital output devices
-	 relays.digiWrite(0);
+	 relays.digiWrite(0);		// ATX power
 	 relays.mode(OUTPUT);
-	 relays.digiWrite2(0);
+	 relays.digiWrite2(0);	// GPIO signal
 	 relays.mode2(OUTPUT);
 
 	 // connect to opto-coupler plug as inputs with pull-ups enabled
@@ -156,31 +157,38 @@ fi
 */
 
 	if (IgnitionState == 1) {
-		// TODO Cancel the shutdown timer
-		// If the CPU is off, sleep for 10 seconds to clear any race between CPU
-		// signalling and halting, and then turn on the state LED, ATX power. and
-		// MCU to CPU signalling line.
 
-		// FIXME If CPU has just shut down, do we toggle everything to wake up?
-		// FIXME If CPU is still starting up, we shouldn't do anything.
+		ShutdownTimer = 0;
 
-		if (CPUState == 0) {
+		if (CPUState == 0 && StartupTimer == 0 ) {
 			Serial.print("Turning on CPU, ATX and LED");
+			StartupTimer = CurrentMillis;
 			BeepAlert(BuzzHighTone);
 			delay(10000);
 			digitalWrite(stateLED, HIGH);
 			relays.digiWrite(HIGH);
 			relays.digiWrite2(HIGH);
-		} else if (CPUState == 1) {
+		}
+		if (CPUState == 0 && StartupTimer > 60000 ) {
+			// Timed out waiting for CPU to boot.
+			// Turn it all off and try again.
+			BeepAlert(BuzzLowTone);
+			digitalWrite(stateLED, LOW);
+			relays.digiWrite(LOW);
+			relays.digiWrite2(LOW);
+			StartupTimer = 0;
+		}
+		if (CPUState == 1) {
 			Serial.print("CPU is reporting as being on");
 		}
 	}
+
 	if (IgnitionState == 0) {
 		if (ShutdownTimer == 0) {
-			// FIXME Start ShutdownTimer
-		} else if (ShutdownTimer > 30) {
-			BeepAlert(BuzzLowTone);
-		} else if (ShutdownTimer > 120) {
+			ShutdownTimer = CurrentMillis;
+		} else if (ShutdownTimer > 30000) {
+			BeepAlert(BuzzLowTone); // FIXME This will get annoying...
+		} else if (ShutdownTimer > 120000) {
 			// Turn off ATX, signalling line, and stateLED
 			digitalWrite(stateLED, LOW);
 			relays.digiWrite(LOW);
