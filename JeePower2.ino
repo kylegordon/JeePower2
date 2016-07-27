@@ -123,8 +123,8 @@ void loop(){
 	}
 
 	// Read the state of the ignition, and the CPU
-	boolean IgnitionState = !optoIn.digiRead();
-	boolean CPUState = !optoIn.digiRead2();
+	boolean IgnitionState = optoIn.digiRead();
+	boolean CPUState = optoIn.digiRead2();
 
 	// If anything has changed, beep for a moment and take a slight pause
 	/*
