@@ -38,7 +38,7 @@ ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 boolean DEBUG = 1;
 
 LiquidCrystalI2C lcd (myI2C);
-#define screen_height 2
+#define screen_height 4
 #define screen_width 16
 
 // set pin numbers:
@@ -99,7 +99,7 @@ void setup() {
 
 	 for (byte i = 0; i <= 10; ++i) {
 		  digitalWrite(stateLED, flasher);
-		  if (flasher) {tone(buzzPin,BuzzLowTone,1000); }
+		  if (flasher) {tone(buzzPin,BuzzHighTone,1000); }
 		  delay(250);
 		  if (flasher) {noTone(buzzPin); }
 		   flasher = !flasher;
@@ -123,7 +123,7 @@ void loop(){
 	}
 
 	// Read the state of the ignition, and the CPU
-	boolean IgnitionState = !optoIn.digiRead2();
+	boolean IgnitionState = !optoIn.digiRead();
 	boolean CPUState = !optoIn.digiRead2();
 
 	// If anything has changed, beep for a moment and take a slight pause
@@ -143,7 +143,7 @@ void loop(){
 	*/
 
 	if (DEBUG) {
-		lcd.clear();
+		// lcd.clear();
 		lcd.setCursor(0,0);
 		lcd.print("CurrentMillis : ");
 		lcd.print(String(CurrentMillis));
