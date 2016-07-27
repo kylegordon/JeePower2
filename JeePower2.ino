@@ -127,17 +127,20 @@ void loop(){
 	boolean CPUState = !optoIn.digiRead2();
 
 	// If anything has changed, beep for a moment and take a slight pause
+	/*
 	if (OldCPUState != CPUState || OldIgnitionState != IgnitionState) {
 		if (DEBUG) {
-			Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
 			Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
-			Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
+			Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
 			Serial.print("CPUState         : "); Serial.println(CPUState);
+			Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
 			delay(5000);
 		}
 		BeepAlert(BuzzHighTone);
 		delay(1000);
 	}
+
+	*/
 
 	if (DEBUG) {
 		lcd.clear();
@@ -189,7 +192,7 @@ fi
 		ShutdownTimer = 0;
 
 		if (CPUState == 0 && StartupTimer == 0 ) {
-			Serial.print("Turning on CPU, ATX and LED");
+			Serial.println("Turning on CPU, ATX and LED");
 			StartupTimer = CurrentMillis;
 			BeepAlert(BuzzHighTone);
 			delay(10000);
@@ -207,7 +210,7 @@ fi
 			StartupTimer = 0;
 		}
 		if (CPUState == 1) {
-			Serial.print("CPU is reporting as being on");
+			Serial.println("CPU is reporting as being on");
 		}
 	}
 
