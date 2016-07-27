@@ -25,6 +25,7 @@ http://lodge.glasgownet.com
 
 
 #include <JeeLib.h>
+#include <PortsLCD.h>
 
 Port optoIn (1);                // Port 1 : Optoisolator inputs
 PortI2C myI2C (2);              // Port 2 : I2C driven LCD display for debugging
@@ -35,6 +36,10 @@ Port relays (4);                // Port 4 : Output relays
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
 boolean DEBUG = 1;
+
+LiquidCrystalI2C lcd (myI2C);
+#define screen_height 2
+#define screen_width 16
 
 // set pin numbers:
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
@@ -72,6 +77,10 @@ void setup() {
 
 	 // Set up the easy transmission mechanism
 	 rf12_easyInit(0);
+
+	 // Set up the LCD display
+	 lcd.begin(screen_width, screen_height);
+	 lcd.print("[jeepower]");
 
 	 // Set up the relays as digital output devices
 	 relays.digiWrite(0);		// ATX power
@@ -128,6 +137,25 @@ void loop(){
 		}
 		BeepAlert(BuzzHighTone);
 		delay(1000);
+	}
+
+	if (DEBUG) {
+		lcd.clear();
+		lcd.setCursor(0,0);
+		lcd.print("CurrentMillis : ");
+		lcd.print(String(CurrentMillis));
+		lcd.setCursor(0,1);
+		lcd.print("StartupTimer  : ");
+		lcd.print(String(StartupTimer));
+		lcd.setCursor(0,2);
+		lcd.print("ShutdownTimer : ");
+		lcd.print(String(ShutdownTimer));
+		lcd.setCursor(0,3);
+		lcd.print("CPU:");
+		lcd.print(String(CPUState));
+		lcd.setCursor(5,3);
+		lcd.print("Ign:");
+		lcd.print(String(IgnitionState));
 	}
 
 
