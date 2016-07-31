@@ -1,3 +1,4 @@
 [submodule "lib/jeelib"]
 	path = lib/jeelib
 	url = https://github.com/jcw/jeelib
+    branch = master
