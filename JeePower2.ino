@@ -82,11 +82,11 @@ void setup() {
 	 lcd.begin(screen_width, screen_height);
 	 lcd.print("[jeepower]");
 
-	 // Set up the relays as digital output devices
-	 relays.digiWrite(0);		// ATX power
-	 relays.mode(OUTPUT);
-	 relays.digiWrite2(0);	// GPIO signal
-	 relays.mode2(OUTPUT);
+     // Set up the relays as digital output devices
+     relays.digiWrite(0);           // ATX power
+     relays.mode(OUTPUT);
+     relays.digiWrite2(0);  // GPIO signal
+     relays.mode2(OUTPUT);
 
 	 // connect to opto-coupler plug as inputs with pull-ups enabled
 	 optoIn.digiWrite(1);
