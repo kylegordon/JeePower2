@@ -30,7 +30,7 @@ http://lodge.glasgownet.com
 //Port optoIn (1);                // Port 1 : Optoisolator inputs
 PortI2C myI2C (2);              // Port 2 : I2C driven LCD display for debugging
 // Port 3 : Buzzer on DIO and LED on AIO
-Port relays (4);                // Port 4 : Output relays
+// Port relays (4);                // Port 4 : Output relays
 
 // has to be defined because we're using the watchdog for low-power waiting
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
@@ -45,9 +45,9 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-const int ATXRelayPin = 7;
-const int IgnitionStatePin = 4;
-const int CPUStatePin = 14;
+const int ATXRelayPin = 7;      // FIXME Just a guess, either 7 or 17
+const int IgnitionStatePin = 4; // FIXME See above...
+const int CPUStatePin = 14;     // FIXME    ''
 
 byte BuzzLowTone = 196;         // Buzzer low tone
 byte BuzzHighTone = 240;	      // Buzzer high tone
@@ -88,11 +88,16 @@ void setup() {
 	 lcd.begin(screen_width, screen_height);
 	 lcd.print("[jeepower]");
 
+     /*
      // Set up the relays as digital output devices
      relays.digiWrite(0);           // ATX power
      relays.mode(OUTPUT);
      relays.digiWrite2(0);  // GPIO signal
      relays.mode2(OUTPUT);
+     */
+
+     pinMode(ATXRelayPin, OUTPUT);
+     digitalWrite(ATXRelayPin, LOW);
 
      /*
 	 // connect to opto-coupler plug as inputs with pull-ups enabled
@@ -210,16 +215,18 @@ fi
 			BeepAlert(BuzzHighTone);
 			delay(10000);
 			digitalWrite(stateLED, HIGH);
-			relays.digiWrite(HIGH);
-			relays.digiWrite2(HIGH);
+			// relays.digiWrite(HIGH);
+			// relays.digiWrite2(HIGH);
+            digitalWrite(ATXRelayPin, HIGH);
 		}
 		if (CPUState == 0 && StartupTimer > 60000 ) {
 			// Timed out waiting for CPU to boot.
 			// Turn it all off and try again.
 			BeepAlert(BuzzLowTone);
 			digitalWrite(stateLED, LOW);
-			relays.digiWrite(LOW);
-			relays.digiWrite2(LOW);
+			// relays.digiWrite(LOW);
+			// relays.digiWrite2(LOW);
+            digitalWrite(ATXRelayPin, LOW);
 			StartupTimer = 0;
 		}
 		if (CPUState == 1) {
@@ -235,8 +242,9 @@ fi
 		} else if (ShutdownTimer > 120000) {
 			// Turn off ATX, signalling line, and stateLED
 			digitalWrite(stateLED, LOW);
-			relays.digiWrite(LOW);
-			relays.digiWrite2(LOW);
+			// relays.digiWrite(LOW);
+			// relays.digiWrite2(LOW);
+            digitalWrite(ATXRelayPin, LOW);
 		}
 	}
 
