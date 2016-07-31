@@ -27,7 +27,7 @@ http://lodge.glasgownet.com
 #include <JeeLib.h>
 #include <PortsLCD.h>
 
-Port optoIn (1);                // Port 1 : Optoisolator inputs
+//Port optoIn (1);                // Port 1 : Optoisolator inputs
 PortI2C myI2C (2);              // Port 2 : I2C driven LCD display for debugging
 // Port 3 : Buzzer on DIO and LED on AIO
 Port relays (4);                // Port 4 : Output relays
@@ -45,12 +45,18 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
+const int ATXRelayPin = 7;
+const int IgnitionStatePin = 4;
+const int CPUStatePin = 14;
+
 byte BuzzLowTone = 196;         // Buzzer low tone
 byte BuzzHighTone = 240;	      // Buzzer high tone
 
 boolean MainPowerState = 0;	    // Main ATX Relay state
 boolean flasher = 0;            // LED state level
+boolean CPUState = 0;
 boolean OldCPUState = 0;
+boolean IgnitionState = 0;
 boolean OldIgnitionState = 0;
 boolean ShutdownTimer = 0;			// shutdown timer counter. FIXME Use proper timers
 boolean StartupTimer = 0; 			// Startup timer to let the system boot before being able to send a shutdown signal
@@ -88,11 +94,16 @@ void setup() {
      relays.digiWrite2(0);  // GPIO signal
      relays.mode2(OUTPUT);
 
+     /*
 	 // connect to opto-coupler plug as inputs with pull-ups enabled
 	 optoIn.digiWrite(1);
 	 optoIn.mode(INPUT);
 	 optoIn.digiWrite2(1);
 	 optoIn.mode2(INPUT);
+     */
+
+     pinMode(IgnitionStatePin, INPUT_PULLUP);
+     pinMode(CPUStatePin, INPUT_PULLUP);
 
 	 // initialize the LED pins as outputs:
 	 pinMode(stateLED, OUTPUT);
@@ -123,8 +134,10 @@ void loop(){
 	}
 
 	// Read the state of the ignition, and the CPU
-	boolean IgnitionState = optoIn.digiRead();
-	boolean CPUState = optoIn.digiRead2();
+	//boolean IgnitionState = optoIn.digiRead();
+	//boolean CPUState = optoIn.digiRead2();
+    IgnitionState = digitalRead(IgnitionStatePin);
+    CPUState = digitalRead(CPUStatePin);
 
 	// If anything has changed, beep for a moment and take a slight pause
 	/*
