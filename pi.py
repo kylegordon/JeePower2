@@ -2,6 +2,11 @@
 
 ## Credit to https://oscarliang.com/raspberry-pi-arduino-connected-i2c/
 
+# Potential NumberToArduino values
+# 0 = Pi not present (used on Arduino)
+# 1 = Pi shutting down
+# 2 = Pi alive
+
 import smbus
 import time
 # for RPI version 1, use "bus = smbus.SMBus(0)"
@@ -21,15 +26,18 @@ def readNumber():
     return number
 
 while True:
-    var = input("Enter 1 - 9: ")
-    if not var:
-        continue
 
-    writeNumber(var)
-    print "RPI: Hi Arduino, I sent you ", var
+    # A 2 to say that the Pi is alive
+    NumberToArduino = 2
+
+
+    # Send the contents of var
+    writeNumber(NumberToArduino)
+
+    print "RPI: Hi Arduino, I sent you ", NumberToArduino
     # sleep one second
     time.sleep(1)
 
-    number = readNumber()
-    print "Arduino: Hey RPI, I received a digit ", number
+    NumberFromArduino = readNumber()
+    print "Arduino: Hey RPI, I received a digit ", NumberFromArduino
     print

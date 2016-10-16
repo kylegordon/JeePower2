@@ -82,11 +82,12 @@ void BeepAlert(int tonevalue) {
 // callback for received data
 void receiveData(int byteCount){
 	if (DEBUG) {
-		Serial.println("I2C data received");
+		Serial.print("I2C data received : ");
 	}
 	while(Wire.available()) {
   	//MessageFromPi = Wire.read();
 		NumberFromPi = Wire.read();
+		Serial.println(String(NumberFromPi));
 	}
 }
 
@@ -94,6 +95,8 @@ void receiveData(int byteCount){
 void sendData(){
 	// http://arduino.stackexchange.com/questions/9071/how-do-i-send-a-string-to-master-using-i2c
 	//Wire.write(MessageToPi.c_str());
+	Serial.print("Sending : ");
+	Serial.println(String(NumberToPi));
 	Wire.write(NumberToPi);
 }
 
