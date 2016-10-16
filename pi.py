@@ -21,7 +21,7 @@ def readNumber():
     return number
 
 while True:
-    var = input("Enter 1 – 9: ")
+    var = input("Enter 1 - 9: ")
     if not var:
         continue
 
