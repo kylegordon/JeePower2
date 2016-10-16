@@ -25,6 +25,7 @@ http://lodge.glasgownet.com
 
 
 #include <JeeLib.h>
+#include <Wire.h>
 #include <PortsLCD.h>
 
 //Port optoIn (1);                // Port 1 : Optoisolator inputs
@@ -37,6 +38,9 @@ ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
 boolean DEBUG = 1;
 
+// Define the I2C slave address
+#define SLAVE_ADDRESS 0x04
+
 LiquidCrystalI2C lcd (myI2C);
 #define screen_height 4
 #define screen_width 16
@@ -45,21 +49,26 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-const int ATXRelayPin = 7;      // FIXME Just a guess, either 7 or 17
+const int ResetPinRelayPin = 7;      // FIXME Just a guess, either 7 or 17
 const int IgnitionStatePin = 4; // FIXME See above...
-const int CPUStatePin = 14;     // FIXME    ''
 
 byte BuzzLowTone = 196;         // Buzzer low tone
 byte BuzzHighTone = 240;	      // Buzzer high tone
 
-boolean MainPowerState = 0;	    // Main ATX Relay state
 boolean flasher = 0;            // LED state level
-boolean CPUState = 0;
-boolean OldCPUState = 0;
 boolean IgnitionState = 0;
 boolean OldIgnitionState = 0;
-boolean ShutdownTimer = 0;			// shutdown timer counter. FIXME Use proper timers
-boolean StartupTimer = 0; 			// Startup timer to let the system boot before being able to send a shutdown signal
+boolean RaspberryPi = 0;
+
+int PowerFail = 0;
+int PowerOK = 1;
+int PiAlive = 2;
+int PiShuttingDown = 3;
+
+//String MessageFromPi;
+//String MessageToPi;
+int NumberFromPi;
+int NumberToPi;
 
 void BeepAlert(int tonevalue) {
 	tone(buzzPin,tonevalue,250);
@@ -68,6 +77,24 @@ void BeepAlert(int tonevalue) {
 	tone(buzzPin,tonevalue,250);
 	delay(250);
 	noTone(buzzPin);
+}
+
+// callback for received data
+void receiveData(int byteCount){
+	if (DEBUG) {
+		Serial.println("I2C data received");
+	}
+	while(Wire.available()) {
+  	//MessageFromPi = Wire.read();
+		NumberFromPi = Wire.read();
+	}
+}
+
+// callback for sending data
+void sendData(){
+	// http://arduino.stackexchange.com/questions/9071/how-do-i-send-a-string-to-master-using-i2c
+	//Wire.write(MessageToPi.c_str());
+	Wire.write(NumberToPi);
 }
 
 void setup() {
@@ -88,27 +115,17 @@ void setup() {
 	 lcd.begin(screen_width, screen_height);
 	 lcd.print("[jeepower]");
 
-     /*
-     // Set up the relays as digital output devices
-     relays.digiWrite(0);           // ATX power
-     relays.mode(OUTPUT);
-     relays.digiWrite2(0);  // GPIO signal
-     relays.mode2(OUTPUT);
-     */
+   pinMode(ResetPinRelayPin, OUTPUT);
+   digitalWrite(ResetPinRelayPin, LOW);
 
-     pinMode(ATXRelayPin, OUTPUT);
-     digitalWrite(ATXRelayPin, LOW);
+	 // initialize i2c as slave
+	 Wire.begin(SLAVE_ADDRESS);
 
-     /*
-	 // connect to opto-coupler plug as inputs with pull-ups enabled
-	 optoIn.digiWrite(1);
-	 optoIn.mode(INPUT);
-	 optoIn.digiWrite2(1);
-	 optoIn.mode2(INPUT);
-     */
+	 // define callbacks for i2c communication
+	 Wire.onReceive(receiveData);
+	 Wire.onRequest(sendData);
 
-     pinMode(IgnitionStatePin, INPUT_PULLUP);
-     pinMode(CPUStatePin, INPUT_PULLUP);
+   pinMode(IgnitionStatePin, INPUT_PULLUP);
 
 	 // initialize the LED pins as outputs:
 	 pinMode(stateLED, OUTPUT);
@@ -130,122 +147,53 @@ void setup() {
 }
 
 void loop(){
+
 	// Sleepy::loseSomeTime() screws up serial output
 	//if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
 	unsigned long CurrentMillis = millis();
 
 	if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
-		if (DEBUG) { Serial.print("Recieved : "); Serial.println(rf12_data[0]); }
+		if (DEBUG) { Serial.print("RF12 Received : "); Serial.println(rf12_data[0]); }
 	}
 
-	// Read the state of the ignition, and the CPU
-	//boolean IgnitionState = optoIn.digiRead();
-	//boolean CPUState = optoIn.digiRead2();
-    IgnitionState = !digitalRead(IgnitionStatePin);
-    CPUState = !digitalRead(CPUStatePin);
+	// Read the I2C bus
 
-	// If anything has changed, beep for a moment and take a slight pause
-	/*
-	if (OldCPUState != CPUState || OldIgnitionState != IgnitionState) {
-		if (DEBUG) {
-			Serial.print("IgnitionState    : "); Serial.println(IgnitionState);
-			Serial.print("OldIgnitionState : "); Serial.println(OldIgnitionState);
-			Serial.print("CPUState         : "); Serial.println(CPUState);
-			Serial.print("OldCPUState      : "); Serial.println(OldCPUState);
-			delay(5000);
-		}
-		BeepAlert(BuzzHighTone);
-		delay(1000);
-	}
-
-	*/
+  IgnitionState = !digitalRead(IgnitionStatePin);
 
 	if (DEBUG) {
 		// lcd.clear();
 		lcd.setCursor(0,0);
 		lcd.print("CurrentMillis : ");
 		lcd.print(String(CurrentMillis));
-		lcd.setCursor(0,1);
-		lcd.print("StartupTimer  : ");
-		lcd.print(String(StartupTimer));
-		lcd.setCursor(0,2);
-		lcd.print("ShutdownTimer : ");
-		lcd.print(String(ShutdownTimer));
 		lcd.setCursor(0,3);
 		lcd.print("CPU:");
-		lcd.print(String(CPUState));
+		lcd.print(String(RaspberryPi));
 		lcd.setCursor(5,3);
 		lcd.print("Ign:");
 		lcd.print(String(IgnitionState));
 	}
 
 
-/*
-
-if IgnitionState = on
-  Cancel shutdown timer
-  if CPUState = off
-    Sleep enough to overcome delay between OS turning off signal, and halting
-    Raise MCU to CPU line
-    Raise PowerSupplyState
-  elseif CPUState = on
-    pass
-  fi
-fi
-if IgnitionState = off
-  If ShutdownTimer = 0
-    Start ShutdownTimer
-  elseif ShutdownTimer > 30 seconds
-    Lower MCU to CPU line to signal shutdown
-  elseif ShutdownTimer > 120 seconds
-    Lower PowerSupplyState (to turn CPU off)
-    Go to Sleep
-  fi
-fi
-
-*/
-
-	if (IgnitionState == 1) {
-
-		ShutdownTimer = 0;
-
-		if (CPUState == 0 && StartupTimer == 0 ) {
-			Serial.println("Turning on CPU, ATX and LED");
-			StartupTimer = CurrentMillis;
-			BeepAlert(BuzzHighTone);
-			delay(10000);
-			digitalWrite(stateLED, HIGH);
-			// relays.digiWrite(HIGH);
-			// relays.digiWrite2(HIGH);
-            digitalWrite(ATXRelayPin, HIGH);
-		}
-		if (CPUState == 0 && StartupTimer > 60000 ) {
-			// Timed out waiting for CPU to boot.
-			// Turn it all off and try again.
-			BeepAlert(BuzzLowTone);
-			digitalWrite(stateLED, LOW);
-			// relays.digiWrite(LOW);
-			// relays.digiWrite2(LOW);
-            digitalWrite(ATXRelayPin, LOW);
-			StartupTimer = 0;
-		}
-		if (CPUState == 1) {
-			Serial.println("CPU is reporting as being on");
-		}
+	if ( IgnitionState == 1 && RaspberryPi == 1 ) {
+		// Everything is fine
+		//MessageToPi = 'POWEROK';
+		NumberToPi = PowerOK;
 	}
 
-	if (IgnitionState == 0) {
-		if (ShutdownTimer == 0) {
-			ShutdownTimer = CurrentMillis;
-		} else if (ShutdownTimer > 30000) {
-			BeepAlert(BuzzLowTone); // FIXME This will get annoying...
-		} else if (ShutdownTimer > 120000) {
-			// Turn off ATX, signalling line, and stateLED
-			digitalWrite(stateLED, LOW);
-			// relays.digiWrite(LOW);
-			// relays.digiWrite2(LOW);
-            digitalWrite(ATXRelayPin, LOW);
-		}
+	if ( IgnitionState == 1 && RaspberryPi == 0 ) {
+		// Power is on, but no RaspberryPi detected
+		//MessageToPi = 'POWEROK';
+		NumberToPi = PowerOK;
+	}
+
+	if ( IgnitionState == 0 && RaspberryPi == 1 ) {
+		// Power is off, but RaspberryPi is still running
+		//MessageToPi = 'POWERFAIL';
+		NumberToPi = PowerFail;
+	}
+
+	if (IgnitionState == 0 && RaspberryPi == 0 ) {
+		// Power is off, and RaspberryPi is off
 	}
 
 }

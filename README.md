@@ -31,8 +31,14 @@ scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno upload
 REWRITE IDEA
 ------------
 
+Probably neater to use and synchronise over I2C
+https://blog.retep.org/2014/02/15/connecting-an-arduino-to-a-raspberry-pi-using-i2c/
+https://blog.adafruit.com/2014/02/21/connecting-an-arduino-to-a-raspberry-pi-using-i2c-raspberry_pi-piday-raspberrypi/
+https://oscarliang.com/raspberry-pi-arduino-connected-i2c/
+https://gist.github.com/carlosefr/5849220
+
 Signal line from CPU to MCU to indicate current power state. (CPUState)
-Signal line from MCU to CPU to indicate desired power state. 
+Signal line from MCU to CPU to indicate desired power state.
 MCU control of CPU power line.
 
 Rough pseudocode...
