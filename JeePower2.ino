@@ -111,24 +111,24 @@ void setup() {
 	// These settings can be filled in by the RF12demo sketch in the RF12 library
 	rf12_config();
 
-    // Set up the easy transmission mechanism
+  // Set up the easy transmission mechanism
 	rf12_easyInit(0);
 
 	// Set up the LCD display
 	lcd.begin(screen_width, screen_height);
 	lcd.print("[jeepower]");
 
-    pinMode(ResetPinRelayPin, OUTPUT);
-    digitalWrite(ResetPinRelayPin, LOW);
+  pinMode(ResetPinRelayPin, OUTPUT);
+  digitalWrite(ResetPinRelayPin, LOW);
 
 	// initialize i2c as slave
 	Wire.begin(SLAVE_ADDRESS);
 
-    // define callbacks for i2c communication
-    Wire.onReceive(receiveData);
+  // define callbacks for i2c communication
+  Wire.onReceive(receiveData);
 	Wire.onRequest(sendData);
 
-    pinMode(IgnitionStatePin, INPUT_PULLUP);
+  pinMode(IgnitionStatePin, INPUT_PULLUP);
 
 	// initialize the LED pins as outputs:
 	pinMode(stateLED, OUTPUT);
