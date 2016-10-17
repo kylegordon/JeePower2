@@ -104,49 +104,49 @@ void setup() {
 	Serial.begin(57600);    // ...set up the serial ouput on 0004 style
 	Serial.println("\n[jeepower]");
 
-	 // Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
-	 // rf12_initialize(30, RF12_868MHZ, 5);
+	// Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
+	// rf12_initialize(30, RF12_868MHZ, 5);
 
-	 // This calls rf12_initialize() with settings obtained from EEPROM address 0x20 .. 0x3F.
-	 // These settings can be filled in by the RF12demo sketch in the RF12 library
-	 rf12_config();
+	// This calls rf12_initialize() with settings obtained from EEPROM address 0x20 .. 0x3F.
+	// These settings can be filled in by the RF12demo sketch in the RF12 library
+	rf12_config();
 
-	 // Set up the easy transmission mechanism
-	 rf12_easyInit(0);
+    // Set up the easy transmission mechanism
+	rf12_easyInit(0);
 
-	 // Set up the LCD display
-	 lcd.begin(screen_width, screen_height);
-	 lcd.print("[jeepower]");
+	// Set up the LCD display
+	lcd.begin(screen_width, screen_height);
+	lcd.print("[jeepower]");
 
-   pinMode(ResetPinRelayPin, OUTPUT);
-   digitalWrite(ResetPinRelayPin, LOW);
+    pinMode(ResetPinRelayPin, OUTPUT);
+    digitalWrite(ResetPinRelayPin, LOW);
 
-	 // initialize i2c as slave
-	 Wire.begin(SLAVE_ADDRESS);
+	// initialize i2c as slave
+	Wire.begin(SLAVE_ADDRESS);
 
-	 // define callbacks for i2c communication
-	 Wire.onReceive(receiveData);
-	 Wire.onRequest(sendData);
+    // define callbacks for i2c communication
+    Wire.onReceive(receiveData);
+	Wire.onRequest(sendData);
 
-   pinMode(IgnitionStatePin, INPUT_PULLUP);
+    pinMode(IgnitionStatePin, INPUT_PULLUP);
 
-	 // initialize the LED pins as outputs:
-	 pinMode(stateLED, OUTPUT);
+	// initialize the LED pins as outputs:
+	pinMode(stateLED, OUTPUT);
 
-	 for (byte i = 0; i <= 10; ++i) {
-		  digitalWrite(stateLED, flasher);
-		  if (flasher) {tone(buzzPin,BuzzHighTone,1000); }
-		  delay(250);
-		  if (flasher) {noTone(buzzPin); }
-		   flasher = !flasher;
-	 }
-	 if (DEBUG) { Serial.println("Ready"); }
-	 if (DEBUG) {
-		  int val = 100;
-		  rf12_easyPoll();
-		  rf12_easySend(&val, sizeof val);
-		  rf12_easyPoll();
-	 }
+	for (byte i = 0; i <= 10; ++i) {
+		digitalWrite(stateLED, flasher);
+		if (flasher) {tone(buzzPin,BuzzHighTone,1000); }
+		delay(250);
+		if (flasher) {noTone(buzzPin); }
+	    flasher = !flasher;
+	}
+	if (DEBUG) { Serial.println("Ready"); }
+	if (DEBUG) {
+		int val = 100;
+		rf12_easyPoll();
+		rf12_easySend(&val, sizeof val);
+		rf12_easyPoll();
+	}
 }
 
 void loop(){
@@ -159,9 +159,7 @@ void loop(){
 		if (DEBUG) { Serial.print("RF12 Received : "); Serial.println(rf12_data[0]); }
 	}
 
-	// Read the I2C bus
-
-  IgnitionState = !digitalRead(IgnitionStatePin);
+    IgnitionState = !digitalRead(IgnitionStatePin);
 
 	if (DEBUG) {
 		// lcd.clear();
