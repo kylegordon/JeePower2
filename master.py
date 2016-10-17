@@ -7,6 +7,10 @@
 # 1 = Pi shutting down
 # 2 = Pi alive
 
+# Let's assume all is well.
+NumberFromArduino = 1
+ShuttingDown = 0
+
 import smbus
 import time
 # for RPI version 1, use "bus = smbus.SMBus(0)"
@@ -22,22 +26,34 @@ def writeNumber(value):
 
 def readNumber():
     number = bus.read_byte(address)
+    print "Recieved :", number
     # number = bus.read_byte_data(address, 1)
     return number
 
 while True:
 
-    # A 2 to say that the Pi is alive
-    NumberToArduino = 2
+    if NumberFromArduino == 0:
+      if ShuttingDown != 1:
+        print "Power changed to PowerFail"
+        # os.system('/sbin/shutdown --poweroff -t 60')
+      if ShuttingDown == 1:
+        print "Waiting for shutdown"
 
+      # Tell the Arduino the Pi is shutting down
+      NumberToArduino = 1
 
-    # Send the contents of var
-    writeNumber(NumberToArduino)
+    elif NumberFromArduino == 1:
+      print "Power is OK"
+      # Tell the Arduino the Pi is up
+      NumberToArduino = 2
 
-    print "RPI: Hi Arduino, I sent you ", NumberToArduino
-    # sleep one second
+    try:
+      NumberFromArduino = readNumber()
+      # Send status to Arduino
+      writeNumber(NumberToArduino)
+      print "Sent Arduino :", NumberToArduino
+
+    except IOError:
+      print "I2C slave not present"
+
     time.sleep(1)
-
-    NumberFromArduino = readNumber()
-    print "Arduino: Hey RPI, I received a digit ", NumberFromArduino
-    print
