@@ -28,6 +28,8 @@ http://lodge.glasgownet.com
 #include <Wire.h>
 #include <PortsLCD.h>
 
+unsigned long CurrentMillis = millis();
+
 //Port optoIn (1);                // Port 1 : Optoisolator inputs
 PortI2C myI2C (2);              // Port 2 : I2C driven LCD display for debugging
 // Port 3 : Buzzer on DIO and LED on AIO
@@ -49,7 +51,7 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-const int ResetPinRelayPin = 7;      // FIXME Just a guess, either 7 or 17
+const int PowerRelayPin = 7;      // FIXME Just a guess, either 7 or 17
 const int IgnitionStatePin = 4; // FIXME See above...
 
 byte BuzzLowTone = 196;         // Buzzer low tone
@@ -65,10 +67,13 @@ int PowerOK = 1;
 int PiAlive = 2;
 int PiShuttingDown = 3;
 
+long TimeSincePower;
+long LastSeen;
+
 //String MessageFromPi;
 //String MessageToPi;
 int NumberFromPi;
-int NumberToPi;
+int NumberToPi = 9;
 
 void BeepAlert(int tonevalue) {
     tone(buzzPin,tonevalue,250);
@@ -85,7 +90,6 @@ void receiveData(int byteCount){
         Serial.print("I2C data received : ");
     }
     while(Wire.available()) {
-    //MessageFromPi = Wire.read();
         NumberFromPi = Wire.read();
         Serial.println(String(NumberFromPi));
     }
@@ -93,11 +97,12 @@ void receiveData(int byteCount){
 
 // callback for sending data
 void sendData(){
-    // http://arduino.stackexchange.com/questions/9071/how-do-i-send-a-string-to-master-using-i2c
-    //Wire.write(MessageToPi.c_str());
     Serial.print("Sending : ");
     Serial.println(String(NumberToPi));
     Wire.write(NumberToPi);
+    LastSeen = CurrentMillis;
+    Serial.println(LastSeen);
+
 }
 
 void setup() {
@@ -111,24 +116,24 @@ void setup() {
     // These settings can be filled in by the RF12demo sketch in the RF12 library
     rf12_config();
 
-  // Set up the easy transmission mechanism
+    // Set up the easy transmission mechanism
     rf12_easyInit(0);
 
     // Set up the LCD display
     lcd.begin(screen_width, screen_height);
     lcd.print("[jeepower]");
 
-  pinMode(ResetPinRelayPin, OUTPUT);
-  digitalWrite(ResetPinRelayPin, LOW);
+    pinMode(PowerRelayPin, OUTPUT);
+    digitalWrite(PowerRelayPin, HIGH);
 
     // initialize i2c as slave
     Wire.begin(SLAVE_ADDRESS);
 
-  // define callbacks for i2c communication
-  Wire.onReceive(receiveData);
+    // define callbacks for i2c communication
+    Wire.onReceive(receiveData);
     Wire.onRequest(sendData);
 
-  pinMode(IgnitionStatePin, INPUT_PULLUP);
+    pinMode(IgnitionStatePin, INPUT_PULLUP);
 
     // initialize the LED pins as outputs:
     pinMode(stateLED, OUTPUT);
@@ -153,13 +158,15 @@ void loop(){
 
     // Sleepy::loseSomeTime() screws up serial output
     //if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
-    unsigned long CurrentMillis = millis();
+    CurrentMillis = millis();
 
     if (rf12_recvDone() && rf12_crc == 0 && rf12_len == 1) {
         if (DEBUG) { Serial.print("RF12 Received : "); Serial.println(rf12_data[0]); }
     }
 
-    IgnitionState = !digitalRead(IgnitionStatePin);
+    // IgnitionState = !digitalRead(IgnitionStatePin);
+    // FIXME
+    IgnitionState = 1;
 
     if (DEBUG) {
         // lcd.clear();
@@ -174,27 +181,62 @@ void loop(){
         lcd.print(String(IgnitionState));
     }
 
+    // Serial.println(CurrentMillis);
 
-    if ( IgnitionState == 1 && RaspberryPi == 1 ) {
+    long TimeSincePi = CurrentMillis - LastSeen;
+    Serial.print("Seconds since contact : ");
+    Serial.println(TimeSincePi);
+    
+    if ( TimeSincePi > 30000 ) {
+        Serial.println("Pi seems to have gone away");
+        // Consider it off (state 4)
+        NumberFromPi = 4;       
+    }
+
+    if ( TimeSincePower > 300000 ) {
+        // Power has been off for a while.
+        // Cut power, regardless of Pi state, to preserve battery
+        digitalWrite(PowerRelayPin, LOW);     
+    }
+
+    if ( IgnitionState == 0 && TimeSincePower == 0 ) {
+        // Power has just been turned off
+        TimeSincePower = CurrentMillis;
+    }   
+
+
+
+    if ( IgnitionState == 1 && NumberFromPi == 0 ) {
+		// Ignition is on, Pi seems to be wanting to shut down
+        // This should transition to NumberFromPi = 4 when heartbeat is lost.
+        TimeSincePower = 0;
+	}
+
+    if ( IgnitionState == 1 && NumberFromPi == 2 ) {
         // Everything is fine
         //MessageToPi = 'POWEROK';
+        Serial.println("Both are on");
         NumberToPi = PowerOK;
+        TimeSincePower = 0;
     }
 
-    if ( IgnitionState == 1 && RaspberryPi == 0 ) {
+    if ( IgnitionState == 1 && NumberFromPi == 4 ) {
         // Power is on, but no RaspberryPi detected
         //MessageToPi = 'POWEROK';
+        Serial.println("Ign on, Pi off");
         NumberToPi = PowerOK;
+        TimeSincePower = 0;
     }
 
-    if ( IgnitionState == 0 && RaspberryPi == 1 ) {
-        // Power is off, but RaspberryPi is still running
-        //MessageToPi = 'POWERFAIL';
-        NumberToPi = PowerFail;
-    }
+    if ( IgnitionState == 0 && NumberFromPi == 2 ) {
+		// Ignition is off, but Pi is still running
+		Serial.print("Ign off, Pi on");
+		NumberToPi = PowerFail;
+	}
 
-    if (IgnitionState == 0 && RaspberryPi == 0 ) {
+    if ( IgnitionState == 0 && RaspberryPi == 0 ) {
         // Power is off, and RaspberryPi is off
+        Serial.println("Both are off");
     }
 
 }
