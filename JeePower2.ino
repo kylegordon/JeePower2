@@ -51,8 +51,8 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-const int PowerRelayPin = 7;      // FIXME Just a guess, either 7 or 17
-const int IgnitionStatePin = 4; // FIXME See above...
+const int PowerRelayPin = 17;      // Two relay ports, at pin 7 and 17
+const int IgnitionStatePin = 4; // FIXME Not sure if this is the right pin
 
 byte BuzzLowTone = 196;         // Buzzer low tone
 byte BuzzHighTone = 240;          // Buzzer high tone
@@ -124,6 +124,7 @@ void setup() {
     lcd.print("[jeepower]");
 
     pinMode(PowerRelayPin, OUTPUT);
+    // HIGH is relay *ON*
     digitalWrite(PowerRelayPin, HIGH);
 
     // initialize i2c as slave
@@ -186,35 +187,32 @@ void loop(){
     long TimeSincePi = CurrentMillis - LastSeen;
     Serial.print("Seconds since contact : ");
     Serial.println(TimeSincePi);
-    
+
     if ( TimeSincePi > 30000 ) {
         Serial.println("Pi seems to have gone away");
         // Consider it off (state 4)
-        NumberFromPi = 4;       
+        NumberFromPi = 4;
     }
 
     if ( TimeSincePower > 300000 ) {
         // Power has been off for a while.
         // Cut power, regardless of Pi state, to preserve battery
-        digitalWrite(PowerRelayPin, LOW);     
+        // digitalWrite(PowerRelayPin, LOW);
     }
 
     if ( IgnitionState == 0 && TimeSincePower == 0 ) {
         // Power has just been turned off
         TimeSincePower = CurrentMillis;
-    }   
-
-
+    }
 
     if ( IgnitionState == 1 && NumberFromPi == 0 ) {
-		// Ignition is on, Pi seems to be wanting to shut down
+		    // Ignition is on, Pi seems to be wanting to shut down
         // This should transition to NumberFromPi = 4 when heartbeat is lost.
         TimeSincePower = 0;
-	}
+	  }
 
     if ( IgnitionState == 1 && NumberFromPi == 2 ) {
         // Everything is fine
-        //MessageToPi = 'POWEROK';
         Serial.println("Both are on");
         NumberToPi = PowerOK;
         TimeSincePower = 0;
@@ -222,17 +220,16 @@ void loop(){
 
     if ( IgnitionState == 1 && NumberFromPi == 4 ) {
         // Power is on, but no RaspberryPi detected
-        //MessageToPi = 'POWEROK';
         Serial.println("Ign on, Pi off");
         NumberToPi = PowerOK;
         TimeSincePower = 0;
     }
 
     if ( IgnitionState == 0 && NumberFromPi == 2 ) {
-		// Ignition is off, but Pi is still running
-		Serial.print("Ign off, Pi on");
-		NumberToPi = PowerFail;
-	}
+		    // Ignition is off, but Pi is still running
+		    Serial.print("Ign off, Pi on");
+		    NumberToPi = PowerFail;
+  	}
 
     if ( IgnitionState == 0 && RaspberryPi == 0 ) {
         // Power is off, and RaspberryPi is off
