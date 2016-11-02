@@ -4,8 +4,8 @@
 
 # Potential NumberToArduino values
 # 0 = Pi not present (used on Arduino)
-# 1 = Pi shutting down
-# 2 = Pi alive
+PiAlive = 2
+PiShuttingDown = 3
 
 # Let's assume all is well.
 NumberFromArduino = 1
@@ -32,7 +32,7 @@ def readNumber():
 
 while True:
 
-    if NumberFromArduino == 0:
+    if NumberFromArduino == ShuttingDown:
       if ShuttingDown != 1:
         print "Power changed to PowerFail"
         # os.system('/sbin/shutdown --poweroff -t 60')
@@ -40,12 +40,12 @@ while True:
         print "Waiting for shutdown"
 
       # Tell the Arduino the Pi is shutting down
-      NumberToArduino = 1
+      NumberToArduino = PiShuttingDown
 
     elif NumberFromArduino == 1:
       print "Power is OK"
       # Tell the Arduino the Pi is up
-      NumberToArduino = 2
+      NumberToArduino = PiAlive
 
     try:
       NumberFromArduino = readNumber()
