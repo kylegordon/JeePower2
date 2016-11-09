@@ -51,7 +51,7 @@ LiquidCrystalI2C lcd (myI2C);
 const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
-const int PowerRelayPin = 17;      // Two relay ports, at pin 7 and 17
+const int PowerRelayPin = 7;      // Two relay ports, at pin 7 and 17
 const int IgnitionStatePin = 4; // FIXME Not sure if this is the right pin
 
 byte BuzzLowTone = 196;         // Buzzer low tone
