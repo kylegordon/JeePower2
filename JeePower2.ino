@@ -52,27 +52,29 @@ const byte stateLED =  16;      // State LED hooked onto Port 3 AIO (PC2)
 const int buzzPin = 6;          // State LED hooked into Port 3 DIO (PD6)
 
 const int PowerRelayPin = 7;      // Two relay ports, at pin 7 and 17
-const int IgnitionStatePin = 4; // FIXME Not sure if this is the right pin
+const int IgnitionStatePin = 4; // Not sure if this is the right pin
 
-byte BuzzLowTone = 196;         // Buzzer low tone
-byte BuzzHighTone = 240;          // Buzzer high tone
+const byte BuzzLowTone = 196;         // Buzzer low tone
+const byte BuzzHighTone = 240;          // Buzzer high tone
 
 boolean flasher = 0;            // LED state level
 boolean IgnitionState = 0;
 boolean OldIgnitionState = 0;
 boolean RaspberryPi = 0;
+boolean Power = 0;
 
-int PowerFail = 0;
-int PowerOK = 1;
-int PiAlive = 2;
-int PiShuttingDown = 3;
+const int PowerFail = 0;
+const int PowerOK = 1;
+const int PiAlive = 2;
+const int PiShuttingDown = 3;
 
-long TimeSincePower;
+long TimePowerLost;
+long TimePowerGained;
+long TimeSincePowerLost;
+long TimeSincePowerGained;
 long LastSeen;
 
-//String MessageFromPi;
-//String MessageToPi;
-int NumberFromPi;
+int NumberFromPi = 9;
 int NumberToPi = 9;
 
 void BeepAlert(int tonevalue) {
@@ -125,7 +127,7 @@ void setup() {
 
     pinMode(PowerRelayPin, OUTPUT);
     // HIGH is relay *ON*
-    digitalWrite(PowerRelayPin, HIGH);
+    digitalWrite(PowerRelayPin, LOW);
 
     // initialize i2c as slave
     Wire.begin(SLAVE_ADDRESS);
@@ -165,9 +167,7 @@ void loop(){
         if (DEBUG) { Serial.print("RF12 Received : "); Serial.println(rf12_data[0]); }
     }
 
-    // IgnitionState = !digitalRead(IgnitionStatePin);
-    // FIXME
-    IgnitionState = 1;
+    IgnitionState = !digitalRead(IgnitionStatePin);
 
     if (DEBUG) {
         // lcd.clear();
@@ -185,55 +185,97 @@ void loop(){
     // Serial.println(CurrentMillis);
 
     long TimeSincePi = CurrentMillis - LastSeen;
-    Serial.print("Seconds since contact : ");
+    Serial.print("Seconds since contact   : ");
     Serial.println(TimeSincePi);
 
     if ( TimeSincePi > 30000 ) {
-        Serial.println("Pi seems to have gone away");
-        // Consider it off (state 4)
+        // If no message from the Pi for over 30 seconds, consider it off.
+        Serial.println("Pi state unknown");
         NumberFromPi = 4;
     }
 
-    if ( TimeSincePower > 300000 ) {
+    // Handle the toggling between power states, and record the event.
+    if ( IgnitionState == 1 && OldIgnitionState == 0 ) {
+        // We have regained power
+        Serial.println("Power regained");
+        OldIgnitionState = 1;
+        TimePowerLost = 0;
+        TimePowerGained = CurrentMillis;
+        // Don't do this yet // Power = 1;
+    }
+    if ( IgnitionState == 0 && OldIgnitionState == 1 ) {
+        // We have just lost power
+        Serial.println("Power lost");
+        TimePowerLost = CurrentMillis;
+        TimePowerGained = 0;
+        OldIgnitionState = 0;
+        // Don't do this yet // Power = 0;
+    }
+
+    if ( TimePowerLost != 0 ) {
+        TimeSincePowerLost = CurrentMillis - TimePowerLost;
+    }
+
+    if ( TimePowerGained != 0 ) {
+        TimeSincePowerGained = CurrentMillis - TimePowerGained;
+    }
+
+    Serial.print("Time since power lost   : ");
+    Serial.println(TimeSincePowerLost);
+    Serial.print("Time since power gained : ");
+    Serial.println(TimeSincePowerGained);
+
+    if ( TimeSincePowerLost > 600000 && IgnitionState == 0 ) {
         // Power has been off for a while.
         // Cut power, regardless of Pi state, to preserve battery
-        // digitalWrite(PowerRelayPin, LOW);
+        digitalWrite(PowerRelayPin, LOW);
+    }
+    if ( TimeSincePowerLost > 30000 && IgnitionState == 0 ) {
+        Power = 0;
+    }
+    if ( TimeSincePowerGained > 5000 && IgnitionState == 1 ) {
+        Power = 1;
+        digitalWrite(PowerRelayPin, HIGH);
     }
 
-    if ( IgnitionState == 0 && TimeSincePower == 0 ) {
-        // Power has just been turned off
-        TimeSincePower = CurrentMillis;
-    }
+    // Move on to Raspberry Pi handling
 
-    if ( IgnitionState == 1 && NumberFromPi == 0 ) {
+    if ( Power == 1 && NumberFromPi == 0 ) {
 		    // Ignition is on, Pi seems to be wanting to shut down
         // This should transition to NumberFromPi = 4 when heartbeat is lost.
-        TimeSincePower = 0;
+        //TimeSincePower = 0;
+        Serial.println("Ign on, Pi shutting down");
 	  }
 
-    if ( IgnitionState == 1 && NumberFromPi == 2 ) {
-        // Everything is fine
-        Serial.println("Both are on");
-        NumberToPi = PowerOK;
-        TimeSincePower = 0;
+    if ( Power == 1 && NumberFromPi == 9 ) {
+        // Ignition is on, Pi state is unknown. (9 is default)
+        //TimeSincePower = 0;
+        Serial.println("Ign on, Pi unknown");
     }
 
-    if ( IgnitionState == 1 && NumberFromPi == 4 ) {
+    if ( Power == 1 && NumberFromPi == 2 ) {
+        // Everything is fine
+        Serial.println("Ign on, Pi on");
+        NumberToPi = PowerOK;
+        //TimeSincePower = 0;
+    }
+
+    if ( Power == 1 && NumberFromPi == 4 ) {
         // Power is on, but no RaspberryPi detected
         Serial.println("Ign on, Pi off");
         NumberToPi = PowerOK;
-        TimeSincePower = 0;
+        //TimeSincePower = 0;
     }
 
-    if ( IgnitionState == 0 && NumberFromPi == 2 ) {
+    if ( Power == 0 && NumberFromPi == 2 ) {
 		    // Ignition is off, but Pi is still running
 		    Serial.print("Ign off, Pi on");
 		    NumberToPi = PowerFail;
   	}
 
-    if ( IgnitionState == 0 && RaspberryPi == 0 ) {
+    if ( Power == 0 && RaspberryPi == 0 ) {
         // Power is off, and RaspberryPi is off
-        Serial.println("Both are off");
+        Serial.println("Ign off, Pi off");
     }
 
 }
