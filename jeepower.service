@@ -1,0 +1,15 @@
+# This systemd service definition goes in /lib/systemd/system/
+# Execute systemctl daemon-reload
+# Then systemctl start jeepower.service
+
+[Unit]
+Description=Jeenode I2C Master
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /home/pi/JeePower2/master.py
+
+[Install]
+WantedBy=multi-user.target
+
