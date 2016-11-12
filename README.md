@@ -6,60 +6,32 @@ Available under the terms of the GPL v3
 
 A simple little Arduino compatible sketch used to provide some intelligence to an in-car power supply.
 
-It monitors vehicle ignition and oil pressure. Only when the oil pressure warning light hsa been extinguished and the ignition has come on will it start some timers and eventually power up an output relay.
+WIRING
+------
 
-If the ignition is off, it will run a countdown timer before turning off a relay that's used to indicate an impending loss of power. After another timer has expired, it will kill the main power.
+There are a variety of components in use here. A Jeenode flavour of Arduino, with the Opto-Coupler 'plug' which simply links a couple of opto-couplers as inputs to the Arduino, and a Output Relay 'plug' which is provides two small relays to interface to the Arduino.
 
-The current use for the indication relay is to indicate to a Bifferboard over the GPIO pins that the power will be lost. The Bifferboard does not support ACPI, so another method had to be found. A python script monitors the state of the input, and will initiate a shutdown if the input is brought low. If the Arduino lowers this input, and then the ignition is brought back on, the Arduino will continue the shut down process and then restart the whole system when appropriate, as there is no way to interrupt the shutdown once it's started on the Bifferboard.
+Along with the Arduino, there is a buck converter that operates from an input supply voltage of 4.5 to 28V ( supplying up to 3A ) ( https://www.aliexpress.com/item/5-pcs-Ultra-Small-Size-DC-DC-Step-Down-Power-Supply-Module-3A-Adjustable-Buck-Converter/32261885063.html ), a neat Li-Ion battery charger ( http://www.banggood.com/37V-Liion-Battery-Mini-USB-To-USB-A-Power-Apply-Module-p-928948.html?rmmds=myorder ) that has the ability to charge and supply at the same time, and a Raspberry Pi Zero.
+
+The entire system operates off of a 5v supply. The incoming car 12v is fed from the ignition, and goes straight into the buck converter. This converter is adjusted to output 5V, which then feeds into both the Li-Ion battery charger and the opto-coupler inputs on the Arduino.
+
+The battery charger output goes to permanently power the Arduino, and the positive side of the Arduino relay. The switched side of the Arduino relay goes to the power input of the Raspberry Pi. This way, the Arduino gets to control the power supply of the Raspberry Pi.
+
+The Raspberry Pi and the Arduino communicate using I2C over a 3 wire link between pins 3 ( data ) and 5 ( clock ) on the Pi, and the SDA ( data ) and SCL ( clock ) pins on the Arduino.
 
 BUILDING
 --------
 
-Make sure you have avr-libc and avrdude installed, along with the latest copy of the jeelib libraries from https://github.com/jcw/jeelib
-
-Using scons, in the downloaded directory, execute the following whilst substituting in the correct parameters for your environment.
-
-scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno
+This is all done with PlatformIO. To build, simply run *pio run*
 
 UPLOADING
 ---------
 
-As above, but append 'upload' to the end
+Yet more PlatformIO magic - *pio run -target upload --upload-port /dev/ttyUSB0*
 
-scons ARDUINO_HOME=~/Applications/arduino/ ARDUINO_BOARD=uno upload
+BASIC OPERATION
+---------------
 
-REWRITE IDEA
-------------
+The Arduino sits and monitors the Opto-Coupler inputs to ascertain the state of available power. At the same time, it operates as an I2C slave to the Raspberry Pi. I2C slave functionality only came to the Linux Kernal recently, so hence the Pi is the master, and the Arduino is the slave. Every second or so the Pi asks for a status code, which the Arduino considers to be a heartbeat. The Arduino responds with a code describing the power state.
 
-Probably neater to use and synchronise over I2C
-https://blog.retep.org/2014/02/15/connecting-an-arduino-to-a-raspberry-pi-using-i2c/
-https://blog.adafruit.com/2014/02/21/connecting-an-arduino-to-a-raspberry-pi-using-i2c-raspberry_pi-piday-raspberrypi/
-https://oscarliang.com/raspberry-pi-arduino-connected-i2c/
-https://gist.github.com/carlosefr/5849220
-
-Signal line from CPU to MCU to indicate current power state. (CPUState)
-Signal line from MCU to CPU to indicate desired power state.
-MCU control of CPU power line.
-
-Rough pseudocode...
-
-if IgnitionState = on
-  Cancel shutdown timer
-  if CPUState = off
-    Sleep enough to overcome delay between OS turning off signal, and halting
-    Raise MCU to CPU line
-    Raise PowerSupplyState
-  elseif CPUState = on
-    pass
-  fi
-fi
-if IgnitionState = off
-  If ShutdownTimer = 0
-    Start ShutdownTimer
-  elseif ShutdownTimer > 30 seconds
-    Lower MCU to CPU line to signal shutdown
-  elseif ShutdownTimer > 120 seconds
-    Lower PowerSupplyState (to turn CPU off)
-    Go to Sleep
-  fi
-fi
+A master I2C script runs on the Pi, having been started by systemd, and performs actions based on those return codes. Most of the time the action is to start or cancel a shutdown process.
