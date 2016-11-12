@@ -2,7 +2,6 @@
 
 JeePower2
 Kyle Gordon <kyle@lodge.glasgownet.com>
-Available under the terms of the GPL v3
 
 A simple little Arduino compatible sketch used to provide some intelligence to an in-car power supply.
 
