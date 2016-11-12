@@ -13,6 +13,8 @@ ShuttingDown = 0
 
 import smbus
 import time
+import os
+
 # for RPI version 1, use "bus = smbus.SMBus(0)"
 bus = smbus.SMBus(1)
 
@@ -31,6 +33,7 @@ def readNumber():
     return number
 
 while True:
+    # FIXME Needs to handle cancellations, and repeat messaging
 
     if NumberFromArduino == ShuttingDown:
       if ShuttingDown != 1:
