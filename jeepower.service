@@ -1,4 +1,4 @@
-# This systemd service definition goes in /lib/systemd/system/
+# This systemd service definition goes in /etc/systemd/system/
 # Execute systemctl daemon-reload
 # Then systemctl start jeepower.service
 
