@@ -7,7 +7,7 @@ Description=Jeenode I2C Master
 After=multi-user.target
 
 [Service]
-Type=idle
+Type=simple
 ExecStart=/usr/bin/python /home/pi/JeePower2/master.py
 
 [Install]
