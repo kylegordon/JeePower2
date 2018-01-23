@@ -20,4 +20,5 @@ install:
     - platformio lib install 252
 
 script:
-    - platformio ci --board=uno
+    - platformio lib update
+    - platformio run
