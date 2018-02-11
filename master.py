@@ -2,6 +2,11 @@
 
 ## Credit to https://oscarliang.com/raspberry-pi-arduino-connected-i2c/
 
+import logging
+import smbus
+import time
+import os
+
 Debug = 1
 
 # Potential NumberToArduino values
@@ -19,11 +24,6 @@ LogLevels = {'debug': logging.DEBUG,
           'warning': logging.WARNING,
           'error': logging.ERROR,
           'critical': logging.CRITICAL}
-
-import logging
-import smbus
-import time
-import os
 
 if Debug == 0:
     logging.basicConfig(filename=LOGFILE, level=logging.INFO)
