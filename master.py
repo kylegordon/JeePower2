@@ -10,6 +10,7 @@ PiShuttingDown = 3
 # Let's assume all is well.
 NumberFromArduino = 1
 ShuttingDown = 0
+ShutdownCalled = 0
 
 import smbus
 import time
@@ -36,10 +37,11 @@ while True:
     # FIXME Needs to handle cancellations, and repeat messaging
 
     if NumberFromArduino == ShuttingDown:
-      if ShuttingDown != 1:
+      if ShutdownCalled != 1:
         print "Power changed to PowerFail"
-        # os.system('/sbin/shutdown --poweroff -t 60')
-      if ShuttingDown == 1:
+        os.system('/sbin/shutdown --poweroff -t 60')
+        ShutdownCalled = 1
+      if ShutdownCalled == 1:
         print "Waiting for shutdown"
 
       # Tell the Arduino the Pi is shutting down
@@ -49,6 +51,10 @@ while True:
       print "Power is OK"
       # Tell the Arduino the Pi is up
       NumberToArduino = PiAlive
+      if ShutdownCalled == 1:
+        # Cancel the running shutdown
+        os.system('/sbin/shutdown -c')
+        ShutdownCalled = 0
 
     try:
       NumberFromArduino = readNumber()
