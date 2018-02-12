@@ -18,7 +18,7 @@ PiShuttingDown = 3
 NumberFromArduino = 1
 ShuttingDown = 0
 ShutdownCalled = 0
-LogFile = /var/log/jeepower-master.log
+LogFile = '/tmp/jeepower-master.log'
 LogLevels = {'debug': logging.DEBUG,
           'info': logging.INFO,
           'warning': logging.WARNING,
@@ -26,9 +26,9 @@ LogLevels = {'debug': logging.DEBUG,
           'critical': logging.CRITICAL}
 
 if Debug == 0:
-    logging.basicConfig(filename=LOGFILE, level=logging.INFO)
+    logging.basicConfig(filename=LogFile, level=logging.INFO)
 if Debug == 1:
-    logging.basicConfig(filename=LOGFILE, level=logging.DEBUG)
+    logging.basicConfig(filename=LogFile, level=logging.DEBUG)
 
 logging.info('Starting i2c master daemon')
 logging.info('INFO MODE')
@@ -71,7 +71,6 @@ while True:
       NumberToArduino = PiShuttingDown
 
     elif NumberFromArduino == 1:
-      logging.info("Power is OK")
       print "Power is OK"
       # Tell the Arduino the Pi is up
       NumberToArduino = PiAlive
