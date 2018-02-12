@@ -13,7 +13,7 @@ cache:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=JeePower2.ino
+    - PLATFORMIO_CI_SRC=src/JeePower2.ino
 
 install:
     - pip install -U platformio
