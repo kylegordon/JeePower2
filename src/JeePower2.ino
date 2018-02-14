@@ -241,11 +241,11 @@ void loop(){
     // Move on to Raspberry Pi handling
 
     if ( Power == 1 && NumberFromPi == 0 ) {
-		    // Ignition is on, Pi seems to be wanting to shut down
+        // Ignition is on, Pi seems to be wanting to shut down
         // This should transition to NumberFromPi = 4 when heartbeat is lost.
         //TimeSincePower = 0;
         Serial.println("Ign on, Pi shutting down");
-	  }
+    }
 
     if ( Power == 1 && NumberFromPi == 9 ) {
         // Ignition is on, Pi state is unknown. (9 is default)
@@ -268,10 +268,10 @@ void loop(){
     }
 
     if ( Power == 0 && NumberFromPi == 2 ) {
-		    // Ignition is off, but Pi is still running
-		    Serial.print("Ign off, Pi on");
-		    NumberToPi = PowerFail;
-  	}
+        // Ignition is off, but Pi is still running
+        Serial.print("Ign off, Pi on");
+        NumberToPi = PowerFail;
+    }
 
     if ( Power == 0 && RaspberryPi == 0 ) {
         // Power is off, and RaspberryPi is off
