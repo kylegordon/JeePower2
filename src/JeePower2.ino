@@ -108,7 +108,7 @@ void sendData(){
 }
 
 void setup() {
-    Serial.begin(57600);    // ...set up the serial ouput on 0004 style
+    Serial.begin(115200);    // ...set up the serial ouput on 0004 style
     Serial.println("\n[jeepower]");
 
     // Initialize the RF12 module. Node ID 30, 868MHZ, Network group 5
@@ -158,6 +158,9 @@ void setup() {
 }
 
 void loop(){
+
+    // Blink the LED at 1Hz. Credit to http://forum.arduino.cc/index.php?topic=403637.msg2776164#msg2776164
+    digitalWrite(stateLED, millis()>>10 &1);
 
     // Sleepy::loseSomeTime() screws up serial output
     //if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
