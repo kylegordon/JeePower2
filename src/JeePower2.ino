@@ -243,13 +243,11 @@ void loop(){
     if ( Power == 1 && NumberFromPi == 0 ) {
         // Ignition is on, Pi seems to be wanting to shut down
         // This should transition to NumberFromPi = 4 when heartbeat is lost.
-        //TimeSincePower = 0;
         Serial.println("Ign on, Pi shutting down");
     }
 
     if ( Power == 1 && NumberFromPi == 9 ) {
         // Ignition is on, Pi state is unknown. (9 is default)
-        //TimeSincePower = 0;
         Serial.println("Ign on, Pi unknown");
     }
 
@@ -257,14 +255,12 @@ void loop(){
         // Everything is fine
         Serial.println("Ign on, Pi on");
         NumberToPi = PowerOK;
-        //TimeSincePower = 0;
     }
 
     if ( Power == 1 && NumberFromPi == 4 ) {
         // Power is on, but no RaspberryPi detected
         Serial.println("Ign on, Pi off");
         NumberToPi = PowerOK;
-        //TimeSincePower = 0;
     }
 
     if ( Power == 0 && NumberFromPi == 2 ) {
@@ -276,6 +272,10 @@ void loop(){
     if ( Power == 0 && RaspberryPi == 0 ) {
         // Power is off, and RaspberryPi is off
         Serial.println("Ign off, Pi off");
+        // Should probably slip into a sleep state for a short while
+        // Sleepy::loseSomeTime() screws up serial output
+        // if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
+
     }
 
 }
