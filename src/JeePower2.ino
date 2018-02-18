@@ -245,6 +245,7 @@ void loop(){
 
     if ( Power == 1 ) {
         // Ignition is on
+        NumberToPi = PowerOK;
         switch (NumberFromPi) {
             case 0:
                 // Ignition is on, Pi seems to be wanting to shut down
@@ -254,12 +255,10 @@ void loop(){
             case 2:
                 // Everything is fine
                 Serial.println("Ign on, Pi on");
-                NumberToPi = PowerOK;
                 break;
             case 4:
                 // Power is on, but no RaspberryPi detected
                 Serial.println("Ign on, Pi off");
-                NumberToPi = PowerOK;
                 break;
             case 9:
                 // Ignition is on, Pi state is unknown. (9 is default)
@@ -270,6 +269,7 @@ void loop(){
 
     if ( Power == 0 ) {
         // Power is off
+        NumberToPi = PowerFail;
         switch (NumberFromPi) {
             case 0:
                 // Power is off, and RaspberryPi is off
@@ -280,49 +280,49 @@ void loop(){
                 break;
             case 2:
                 // Ignition is off, but Pi is still running
-                Serial.print("Ign off, Pi on");
-                NumberToPi = PowerFail;
+                Serial.println("Ign off, Pi on");
+                break;
+            case 3:
+                // Ignition is off, and Pi is shutting down
+                Serial.println("Ign off, Pi shutting down");
                 break;
         }
     }
 
-    /*
-    if ( Power == 1 && NumberFromPi == 0 ) {
-        // Ignition is on, Pi seems to be wanting to shut down
-        // This should transition to NumberFromPi = 4 when heartbeat is lost.
-        Serial.println("Ign on, Pi shutting down");
-    }
-
-    if ( Power == 1 && NumberFromPi == 9 ) {
-        // Ignition is on, Pi state is unknown. (9 is default)
-        Serial.println("Ign on, Pi unknown");
-    }
-
-    if ( Power == 1 && NumberFromPi == 2 ) {
-        // Everything is fine
-        Serial.println("Ign on, Pi on");
-        NumberToPi = PowerOK;
-    }
-
-    if ( Power == 1 && NumberFromPi == 4 ) {
-        // Power is on, but no RaspberryPi detected
-        Serial.println("Ign on, Pi off");
-        NumberToPi = PowerOK;
-    }
-
-    if ( Power == 0 && NumberFromPi == 2 ) {
-        // Ignition is off, but Pi is still running
-        Serial.print("Ign off, Pi on");
-        NumberToPi = PowerFail;
-    }
-
-    if ( Power == 0 && RaspberryPi == 0 ) {
-        // Power is off, and RaspberryPi is off
-        Serial.println("Ign off, Pi off");
-        // Should probably slip into a sleep state for a short while
-        // Sleepy::loseSomeTime() screws up serial output
-        // if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
-
-    }
-    */
+    // if ( Power == 1 && NumberFromPi == 0 ) {
+    //     // Ignition is on, Pi seems to be wanting to shut down
+    //     // This should transition to NumberFromPi = 4 when heartbeat is lost.
+    //     Serial.println("Ign on, Pi shutting down");
+    // }
+    //
+    // if ( Power == 1 && NumberFromPi == 9 ) {
+    //     // Ignition is on, Pi state is unknown. (9 is default)
+    //     Serial.println("Ign on, Pi unknown");
+    // }
+    //
+    // if ( Power == 1 && NumberFromPi == 2 ) {
+    //     // Everything is fine
+    //     Serial.println("Ign on, Pi on");
+    //     NumberToPi = PowerOK;
+    // }
+    //
+    // if ( Power == 1 && NumberFromPi == 4 ) {
+    //     // Power is on, but no RaspberryPi detected
+    //     Serial.println("Ign on, Pi off");
+    //     NumberToPi = PowerOK;
+    // }
+    //
+    // if ( Power == 0 && NumberFromPi == 2 ) {
+    //     // Ignition is off, but Pi is still running
+    //     Serial.print("Ign off, Pi on");
+    //     NumberToPi = PowerFail;
+    // }
+    //
+    // if ( Power == 0 && RaspberryPi == 0 ) {
+    //     // Power is off, and RaspberryPi is off
+    //     Serial.println("Ign off, Pi off");
+    //     // Should probably slip into a sleep state for a short while
+    //     // Sleepy::loseSomeTime() screws up serial output
+    //     // if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
+    // }
 }
