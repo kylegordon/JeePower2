@@ -60,8 +60,8 @@ while True:
       logging.info("Power has failed")
       if ShutdownCalled != 1:
         print "Power changed to PowerFail"
-        logging.info("Calling for poweroff with 60 second timer")
-        os.system('/sbin/shutdown --poweroff -t 60')
+        logging.info("Calling for poweroff with 180 second timer")
+        os.system('/sbin/shutdown --poweroff -t +2')
         ShutdownCalled = 1
       if ShutdownCalled == 1:
         logging.debug("Waiting for shutdown")
