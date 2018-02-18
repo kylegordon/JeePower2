@@ -159,9 +159,6 @@ void setup() {
 
 void loop(){
 
-    // Blink the LED at 1Hz. Credit to http://forum.arduino.cc/index.php?topic=403637.msg2776164#msg2776164
-    digitalWrite(stateLED, millis()>>10 &1);
-
     // Sleepy::loseSomeTime() screws up serial output
     //if (!DEBUG) {Sleepy::loseSomeTime(30000);}      // Snooze for 30 seconds
     CurrentMillis = millis();
@@ -188,7 +185,7 @@ void loop(){
     // Serial.println(CurrentMillis);
 
     long TimeSincePi = CurrentMillis - LastSeen;
-    Serial.print("Seconds since contact   : ");
+    Serial.print("Time since Pi contact   : ");
     Serial.println(TimeSincePi);
 
     if ( TimeSincePi > 30000 ) {
@@ -246,6 +243,9 @@ void loop(){
     if ( Power == 1 ) {
         // Ignition is on
         NumberToPi = PowerOK;
+        // Blink the LED at 1Hz. Credit to http://forum.arduino.cc/index.php?topic=403637.msg2776164#msg2776164
+        digitalWrite(stateLED, millis()>>10 &1);
+
         switch (NumberFromPi) {
             case 0:
                 // Ignition is on, Pi seems to be wanting to shut down
@@ -270,6 +270,8 @@ void loop(){
     if ( Power == 0 ) {
         // Power is off
         NumberToPi = PowerFail;
+        // Blink the LED at 2Hz. Credit to http://forum.arduino.cc/index.php?topic=403637.msg2776164#msg2776164
+        digitalWrite(stateLED, millis()>>9 &1);
         switch (NumberFromPi) {
             case 0:
                 // Power is off, and RaspberryPi is off
